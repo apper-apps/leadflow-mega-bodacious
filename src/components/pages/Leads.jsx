@@ -143,7 +143,15 @@ const handleCsvImportSuccess = () => {
             Manage and track all your leads in one place
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+<div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/workflows')}
+            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+          >
+            <ApperIcon name="Zap" size={16} />
+            Workflow Automation
+          </Button>
           <Button
             variant="outline"
             onClick={() => setShowCustomFieldManager(true)}

@@ -30,14 +30,17 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
   const [showTest, setShowTest] = useState(false);
 
   const fieldOptions = [
-    { value: 'source', label: 'Lead Source' },
+{ value: 'source', label: 'Lead Source' },
     { value: 'status', label: 'Status' },
     { value: 'value', label: 'Deal Value' },
     { value: 'assignedUser', label: 'Assigned User' },
     { value: 'company', label: 'Company' },
     { value: 'email', label: 'Email' },
     { value: 'phone', label: 'Phone' },
-    { value: 'address', label: 'Address' }
+    { value: 'address', label: 'Address' },
+    { value: 'priority', label: 'Priority' },
+    { value: 'tags', label: 'Tags' },
+    { value: 'score', label: 'Lead Score' }
   ];
 
   const operatorOptions = [
@@ -53,12 +56,15 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
     { value: 'is_not_empty', label: 'Is Not Empty' }
   ];
 
-  const actionTypes = [
+const actionTypes = [
     { value: 'assign_user', label: 'Assign to User' },
     { value: 'set_status', label: 'Set Status' },
     { value: 'add_tag', label: 'Add Tag' },
     { value: 'set_priority', label: 'Set Priority' },
-    { value: 'add_note', label: 'Add Note' }
+    { value: 'add_note', label: 'Add Note' },
+    { value: 'create_task', label: 'Create Task' },
+    { value: 'send_notification', label: 'Send Notification' },
+    { value: 'update_field', label: 'Update Custom Field' }
   ];
 
   const statusOptions = ['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'];
@@ -176,7 +182,7 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
     }
   };
 
-  const getActionValueOptions = (actionType) => {
+const getActionValueOptions = (actionType) => {
     switch (actionType) {
       case 'assign_user':
         return teamMembers.map(m => ({ value: m.name, label: `${m.name} - ${m.role}` }));
@@ -184,6 +190,8 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
         return statusOptions.map(s => ({ value: s, label: s }));
       case 'set_priority':
         return priorityOptions.map(p => ({ value: p, label: p }));
+      case 'send_notification':
+        return teamMembers.map(m => ({ value: m.email, label: `${m.name} (${m.email})` }));
       default:
         return [];
     }
@@ -193,8 +201,8 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
     return !['is_empty', 'is_not_empty'].includes(operator);
   };
 
-  const isNumericField = (field) => {
-    return ['value', 'priority'].includes(field);
+const isNumericField = (field) => {
+    return ['value', 'score'].includes(field);
   };
 
   const handleTest = async () => {
@@ -420,12 +428,18 @@ const RuleBuilder = ({ rule, onSuccess, onCancel }) => {
                       ))}
                     </Select>
                   ) : (
-                    <Input
+<Input
                       value={action.value}
                       onChange={(e) => updateAction(index, 'value', e.target.value)}
-                      placeholder={action.type === 'add_note' ? 'Enter note content' : 'Enter value'}
-                      multiline={action.type === 'add_note'}
-                      rows={action.type === 'add_note' ? 2 : 1}
+                      placeholder={
+                        action.type === 'add_note' ? 'Enter note content' :
+                        action.type === 'create_task' ? 'Enter task title' :
+                        action.type === 'send_notification' ? 'Enter notification message' :
+                        action.type === 'update_field' ? 'Enter field value' :
+                        'Enter value'
+                      }
+                      multiline={['add_note', 'create_task', 'send_notification'].includes(action.type)}
+                      rows={['add_note', 'create_task', 'send_notification'].includes(action.type) ? 2 : 1}
                     />
                   )}
                 </div>

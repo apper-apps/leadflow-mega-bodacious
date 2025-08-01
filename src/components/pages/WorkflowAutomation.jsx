@@ -144,13 +144,16 @@ const WorkflowAutomation = () => {
     return status === 'success' ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
   };
 
-  const getActionIcon = (actionType) => {
+const getActionIcon = (actionType) => {
     switch (actionType) {
       case 'assign_user': return 'User';
       case 'set_status': return 'Flag';
       case 'add_tag': return 'Tag';
       case 'set_priority': return 'AlertTriangle';
       case 'add_note': return 'FileText';
+      case 'create_task': return 'CheckSquare';
+      case 'send_notification': return 'Bell';
+      case 'update_field': return 'Edit';
       default: return 'Zap';
     }
   };
@@ -162,6 +165,9 @@ const WorkflowAutomation = () => {
       case 'add_tag': return `Tagged as ${value}`;
       case 'set_priority': return `Priority set to ${value}`;
       case 'add_note': return `Note added: ${value.substring(0, 50)}...`;
+      case 'create_task': return `Task created: ${value.substring(0, 50)}...`;
+      case 'send_notification': return `Notification sent: ${value.substring(0, 50)}...`;
+      case 'update_field': return `Field updated: ${value}`;
       default: return value;
     }
   };

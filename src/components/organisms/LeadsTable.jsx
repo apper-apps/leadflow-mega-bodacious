@@ -287,7 +287,7 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability" || sortCon
             )}
           </div>
         </div>
-        <Button
+<Button
           onClick={onCreateLead}
           className="bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90"
         >

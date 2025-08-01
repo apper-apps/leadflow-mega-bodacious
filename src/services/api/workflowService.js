@@ -1,6 +1,7 @@
 import workflowData from "@/services/mockData/workflowAutomation.json";
 import { leadService } from "@/services/api/leadService";
 import { teamMemberService } from "@/services/api/teamMemberService";
+import { taskService } from "@/services/api/taskService";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -191,7 +192,7 @@ const workflowService = {
     return true;
   },
 
-  async executeRuleActions(lead, actions) {
+async executeRuleActions(lead, actions) {
     let updatedLead = { ...lead };
     
     for (const action of actions) {
@@ -246,6 +247,47 @@ const workflowService = {
           });
           break;
           
+        case 'create_task':
+          try {
+            await taskService.create({
+              title: action.value,
+              description: `Automated task created for lead: ${lead.name}`,
+              assignedUser: lead.assignedUser || 'Unassigned',
+              dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+              priority: 'Medium',
+              status: 'Open',
+              leadId: lead.Id,
+              createdBy: 'Workflow Automation'
+            });
+          } catch (error) {
+            console.error('Failed to create automated task:', error);
+          }
+          break;
+          
+        case 'send_notification':
+          // In a real implementation, this would send actual notifications
+          console.log(`Notification sent: ${action.value} for lead ${lead.name}`);
+          if (!updatedLead.notifications) {
+            updatedLead.notifications = [];
+          }
+          updatedLead.notifications.push({
+            id: Date.now(),
+            message: action.value,
+            sentAt: new Date().toISOString(),
+            sentBy: "Workflow Automation",
+            type: "automation"
+          });
+          break;
+          
+        case 'update_field':
+          if (action.field && action.value) {
+            if (!updatedLead.customFields) {
+              updatedLead.customFields = {};
+            }
+            updatedLead.customFields[action.field] = action.value;
+          }
+          break;
+          
         default:
           console.warn(`Unknown action type: ${action.type}`);
       }
@@ -263,7 +305,7 @@ const workflowService = {
     return updatedLead;
   },
 
-  getLeadFieldValue(lead, fieldName) {
+getLeadFieldValue(lead, fieldName) {
     switch (fieldName) {
       case 'source':
         return lead.source;
@@ -285,6 +327,16 @@ const workflowService = {
         return lead.name;
       case 'title':
         return lead.title;
+      case 'priority':
+        return lead.priority;
+      case 'tags':
+        return lead.tags;
+      case 'score':
+        return lead.score;
+      case 'createdAt':
+        return lead.createdAt;
+      case 'updatedAt':
+        return lead.updatedAt;
       default:
         // Check custom fields
         return lead.customFields?.[fieldName];
@@ -307,7 +359,7 @@ const workflowService = {
   },
 
   // Validation and Testing
-  async validateRule(ruleData) {
+async validateRule(ruleData) {
     const errors = [];
     
     if (!ruleData.name || ruleData.name.trim() === '') {
@@ -348,6 +400,18 @@ const workflowService = {
         
         if (action.type === 'set_status' && !action.value) {
           errors.push('Status action requires a status value');
+        }
+        
+        if (action.type === 'create_task' && !action.value) {
+          errors.push('Task creation requires a task title');
+        }
+        
+        if (action.type === 'send_notification' && !action.value) {
+          errors.push('Notification requires a message');
+        }
+        
+        if (action.type === 'update_field' && (!action.field || !action.value)) {
+          errors.push('Field update requires both field name and value');
         }
       }
     }

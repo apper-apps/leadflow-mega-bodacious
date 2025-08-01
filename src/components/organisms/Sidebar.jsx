@@ -26,6 +26,12 @@ const menuItems = [
       path: "/pipeline",
     },
 {
+      id: "workflows",
+      label: "Workflow Automation",
+      icon: "Zap",
+      path: "/workflows",
+    },
+    {
       id: "tasks",
       label: "Tasks",
       icon: "CheckSquare",
