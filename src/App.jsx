@@ -14,14 +14,16 @@ function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Routes>
-          <Route index element={<Dashboard />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="pipeline" element={<Pipeline />} />
-          <Route path="workflows" element={<WorkflowAutomation />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="communications" element={<Communications />} />
-</Routes>
+<Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="leads" element={<Leads />} />
+            <Route path="pipeline" element={<Pipeline />} />
+            <Route path="workflows" element={<WorkflowAutomation />} />
+            <Route path="tasks" element={<Tasks />} />
+            <Route path="communications" element={<Communications />} />
+          </Route>
+        </Routes>
       </Layout>
       <ToastContainer
         position="top-right"

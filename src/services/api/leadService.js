@@ -78,7 +78,7 @@ const addLeadScores = (leadsArray) => {
 };
 
 export const leadService = {
-async getAll() {
+  async getAll() {
     await delay(300);
     return addLeadScores([...leads]);
   },
