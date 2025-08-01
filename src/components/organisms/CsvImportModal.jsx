@@ -1,22 +1,26 @@
-import React, { useState, useRef } from 'react';
-import { toast } from 'react-toastify';
-import Papa from 'papaparse';
-import { leadService } from '@/services/api/leadService';
-import Modal from '@/components/molecules/Modal';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
-import ApperIcon from '@/components/ApperIcon';
-import Loading from '@/components/ui/Loading';
+import React, { useRef, useState } from "react";
+import { toast } from "react-toastify";
+import Papa from "papaparse";
+import { leadService } from "@/services/api/leadService";
+import ApperIcon from "@/components/ApperIcon";
+import Modal from "@/components/molecules/Modal";
+import Loading from "@/components/ui/Loading";
+import Leads from "@/components/pages/Leads";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
 
 const CsvImportModal = ({ isOpen, onClose, onImportSuccess }) => {
   const [file, setFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [columnMapping, setColumnMapping] = useState({});
-  const [step, setStep] = useState(1); // 1: Upload, 2: Preview/Map, 3: Import
+  const [step, setStep] = useState(1); // 1: Upload, 2: Preview/Map, 3: Duplicate Resolution, 4: Import
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [errors, setErrors] = useState([]);
+  const [duplicates, setDuplicates] = useState([]);
+  const [duplicateResolution, setDuplicateResolution] = useState({});
   const fileInputRef = useRef(null);
 
   const leadFields = [
@@ -124,46 +128,74 @@ const CsvImportModal = ({ isOpen, onClose, onImportSuccess }) => {
     return errors.length === 0;
   };
 
-  const handleImport = async () => {
+const handleImport = async () => {
     if (!validateData()) {
       toast.error(`Found ${errors.length} validation errors. Please fix them before importing.`);
       return;
     }
 
-    setImporting(true);
-    setImportProgress(0);
-    setStep(3);
+    // First, check for duplicates
+    const leadsToImport = csvData.map(row => {
+      const lead = {};
+      Object.keys(columnMapping).forEach(columnIndex => {
+        const fieldKey = columnMapping[columnIndex];
+        const value = row[columnIndex]?.trim();
+        
+        if (value) {
+          if (fieldKey === 'value') {
+            // Convert value to number if it's a deal value
+            const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
+            lead[fieldKey] = isNaN(numValue) ? 0 : numValue;
+          } else {
+            lead[fieldKey] = value;
+          }
+        }
+      });
+      
+      // Set default values
+      lead.status = 'New';
+      lead.winProbability = 25;
+      
+      return lead;
+    });
 
     try {
-      const leadsToImport = csvData.map(row => {
-        const lead = {};
-        Object.keys(columnMapping).forEach(columnIndex => {
-          const fieldKey = columnMapping[columnIndex];
-          const value = row[columnIndex]?.trim();
-          
-          if (value) {
-            if (fieldKey === 'value') {
-              // Convert value to number if it's a deal value
-              const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
-              lead[fieldKey] = isNaN(numValue) ? 0 : numValue;
-            } else {
-              lead[fieldKey] = value;
-            }
-          }
-        });
-        
-        // Set default values
-        lead.status = 'New';
-        lead.winProbability = 25;
-        
-        return lead;
-      });
+      // Check for duplicates
+      const duplicateResults = await leadService.findDuplicates(leadsToImport);
+      
+      if (duplicateResults.length > 0) {
+        setDuplicates(duplicateResults);
+        setStep(3); // Go to duplicate resolution step
+        return;
+      }
 
-      const results = await leadService.bulkImport(leadsToImport, (progress) => {
+      // No duplicates, proceed with import
+      proceedWithImport(leadsToImport);
+    } catch (error) {
+      toast.error('Error checking for duplicates: ' + error.message);
+    }
+  };
+
+  const proceedWithImport = async (leadsToImport) => {
+    setImporting(true);
+    setImportProgress(0);
+    setStep(4);
+
+    try {
+      const results = await leadService.bulkImport(leadsToImport, duplicateResolution, (progress) => {
         setImportProgress(progress);
       });
 
-      toast.success(`Successfully imported ${results.successful} leads`);
+      let successMessage = `Successfully imported ${results.successful} leads`;
+      if (results.merged > 0) {
+        successMessage += `, merged ${results.merged} records`;
+      }
+      if (results.skipped > 0) {
+        successMessage += `, skipped ${results.skipped} duplicates`;
+      }
+      
+      toast.success(successMessage);
+      
       if (results.failed > 0) {
         toast.warning(`${results.failed} leads failed to import`);
       }
@@ -177,7 +209,38 @@ const CsvImportModal = ({ isOpen, onClose, onImportSuccess }) => {
     }
   };
 
-  const handleClose = () => {
+  const handleDuplicateResolution = () => {
+    // Filter leads based on resolution decisions
+    const leadsToImport = csvData.map((row, index) => {
+      const lead = {};
+      Object.keys(columnMapping).forEach(columnIndex => {
+        const fieldKey = columnMapping[columnIndex];
+        const value = row[columnIndex]?.trim();
+        
+        if (value) {
+          if (fieldKey === 'value') {
+            const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
+            lead[fieldKey] = isNaN(numValue) ? 0 : numValue;
+          } else {
+            lead[fieldKey] = value;
+          }
+        }
+      });
+      
+      lead.status = 'New';
+      lead.winProbability = 25;
+      lead.rowIndex = index;
+      
+      return lead;
+    }).filter(lead => {
+      const duplicate = duplicates.find(d => d.newLead.email === lead.email);
+      return !duplicate || duplicateResolution[duplicate.id] !== 'skip';
+    });
+
+    proceedWithImport(leadsToImport);
+  };
+
+const handleClose = () => {
     setFile(null);
     setCsvData([]);
     setHeaders([]);
@@ -186,6 +249,8 @@ const CsvImportModal = ({ isOpen, onClose, onImportSuccess }) => {
     setImporting(false);
     setImportProgress(0);
     setErrors([]);
+    setDuplicates([]);
+    setDuplicateResolution({});
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -247,7 +312,7 @@ const renderMappingStep = () => {
       .every(field => Object.values(columnMapping).includes(field.key));
 
     return (
-      <div>
+<div>
         <div className="mb-6">
           <h3 className="text-lg font-medium mb-2">Map CSV Columns & Preview Data</h3>
           <p className="text-gray-600">
@@ -258,7 +323,6 @@ const renderMappingStep = () => {
           <div className="mt-4 flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>{csvData.length} rows to import</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className={`w-3 h-3 rounded-full ${mappedColumns > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
@@ -268,6 +332,12 @@ const renderMappingStep = () => {
               <div className={`w-3 h-3 rounded-full ${requiredFieldsMapped ? 'bg-green-500' : 'bg-orange-500'}`}></div>
               <span>Required fields {requiredFieldsMapped ? 'complete' : 'incomplete'}</span>
             </div>
+            {duplicates.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span>{duplicates.length} potential duplicates</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -432,7 +502,128 @@ const renderMappingStep = () => {
     );
   };
 
-const renderImportStep = () => {
+const renderDuplicateResolutionStep = () => {
+    const resolvedCount = Object.keys(duplicateResolution).length;
+    const allResolved = resolvedCount === duplicates.length;
+
+    return (
+      <div>
+        <div className="mb-6">
+          <h3 className="text-lg font-medium mb-2">Resolve Duplicate Leads</h3>
+          <p className="text-gray-600">
+            We found {duplicates.length} potential duplicate{duplicates.length > 1 ? 's' : ''} based on email addresses. 
+            Choose how to handle each duplicate record.
+          </p>
+          
+          {/* Resolution Summary */}
+          <div className="mt-4 flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <span>{duplicates.length} duplicates found</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${allResolved ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span>{resolvedCount} of {duplicates.length} resolved</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+          {duplicates.map((duplicate, index) => (
+            <div key={duplicate.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <ApperIcon name="AlertTriangle" size={16} className="text-orange-500" />
+                  <h4 className="font-medium text-gray-900">
+                    Duplicate #{index + 1}: {duplicate.newLead.email}
+                  </h4>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant={duplicateResolution[duplicate.id] === 'merge' ? 'primary' : 'outline'}
+                    onClick={() => setDuplicateResolution(prev => ({ ...prev, [duplicate.id]: 'merge' }))}
+                  >
+                    Merge
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={duplicateResolution[duplicate.id] === 'skip' ? 'primary' : 'outline'}
+                    onClick={() => setDuplicateResolution(prev => ({ ...prev, [duplicate.id]: 'skip' }))}
+                  >
+                    Skip
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h5 className="font-medium text-gray-700 mb-2">Existing Lead</h5>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Name:</span> {duplicate.existingLead.name}</div>
+                    <div><span className="font-medium">Company:</span> {duplicate.existingLead.company}</div>
+                    <div><span className="font-medium">Status:</span> {duplicate.existingLead.status}</div>
+                    <div><span className="font-medium">Value:</span> ${duplicate.existingLead.value?.toLocaleString() || 0}</div>
+                    <div><span className="font-medium">Created:</span> {new Date(duplicate.existingLead.createdAt).toLocaleDateString()}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h5 className="font-medium text-gray-700 mb-2">New Lead (CSV)</h5>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Name:</span> {duplicate.newLead.name}</div>
+                    <div><span className="font-medium">Company:</span> {duplicate.newLead.company}</div>
+                    <div><span className="font-medium">Status:</span> {duplicate.newLead.status}</div>
+                    <div><span className="font-medium">Value:</span> ${duplicate.newLead.value?.toLocaleString() || 0}</div>
+                    <div className="text-gray-500">From CSV import</div>
+                  </div>
+                </div>
+              </div>
+
+              {duplicateResolution[duplicate.id] === 'merge' && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-sm text-blue-800">
+                    <ApperIcon name="Info" size={14} className="inline mr-1" />
+                    The existing lead will be updated with new information where the CSV data is more complete.
+                  </p>
+                </div>
+              )}
+              
+              {duplicateResolution[duplicate.id] === 'skip' && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <p className="text-sm text-gray-600">
+                    <ApperIcon name="X" size={14} className="inline mr-1" />
+                    This CSV record will be skipped and the existing lead will remain unchanged.
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between items-center pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={() => setStep(2)}
+          >
+            Back to Mapping
+          </Button>
+          
+          <Button
+            onClick={handleDuplicateResolution}
+            disabled={!allResolved}
+            className="flex items-center space-x-2"
+          >
+            <span>Proceed with Import</span>
+            <ApperIcon name="ArrowRight" size={16} />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderImportStep = () => {
     const processedLeads = Math.floor((importProgress / 100) * csvData.length);
     
     return (
@@ -486,7 +677,7 @@ const renderImportStep = () => {
             <div className="flex items-center space-x-2">
               <div className={`w-3 h-3 rounded-full ${importProgress > 25 ? 'bg-yellow-500' : 'bg-gray-300'}`}></div>
               <span className={importProgress > 25 ? 'text-yellow-600' : 'text-gray-500'}>
-                Validating Records
+                Handling Duplicates
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -504,12 +695,11 @@ const renderImportStep = () => {
             <ApperIcon name="Info" size={16} className="text-yellow-600 mt-0.5" />
             <div className="text-sm">
               <p className="text-yellow-800 font-medium">Please don't close this window</p>
-              <p className="text-yellow-700">The import process is running and will complete shortly.</p>
             </div>
           </div>
         </div>
       </div>
-    );
+);
   };
 
   return (
@@ -522,7 +712,8 @@ const renderImportStep = () => {
     >
       {step === 1 && renderUploadStep()}
       {step === 2 && renderMappingStep()}
-      {step === 3 && renderImportStep()}
+      {step === 3 && renderDuplicateResolutionStep()}
+      {step === 4 && renderImportStep()}
     </Modal>
   );
 };

@@ -367,9 +367,32 @@ async bulkUpdateStage(leadIds, stage) {
     return updatedLeads;
   },
 
-  async bulkImport(leadsData, onProgress = () => {}) {
+async findDuplicates(leadsData) {
+    const duplicates = [];
+    
+    leadsData.forEach((newLead, index) => {
+      if (!newLead.email) return;
+      
+      const existingLead = leads.find(lead => 
+        lead.email.toLowerCase() === newLead.email.toLowerCase()
+      );
+      
+      if (existingLead) {
+        duplicates.push({
+          id: `duplicate_${index}`,
+          newLead,
+          existingLead,
+          rowIndex: index
+        });
+      }
+    });
+    
+    return duplicates;
+  },
+
+  async bulkImport(leadsData, duplicateResolution = {}, onProgress = () => {}) {
     const batchSize = 10;
-    const results = { successful: 0, failed: 0, errors: [] };
+    const results = { successful: 0, failed: 0, merged: 0, skipped: 0, errors: [] };
     
     for (let i = 0; i < leadsData.length; i += batchSize) {
       const batch = leadsData.slice(i, i + batchSize);
@@ -389,9 +412,47 @@ async bulkUpdateStage(leadIds, stage) {
           );
           
           if (existingLead) {
-            results.failed++;
-            results.errors.push(`Duplicate email: ${leadData.email}`);
-            continue;
+            // Find duplicate resolution
+            const duplicateKey = Object.keys(duplicateResolution).find(key => {
+              const resolution = duplicateResolution[key];
+              return resolution && key.includes('duplicate_');
+            });
+            
+            const resolution = duplicateKey ? duplicateResolution[duplicateKey] : 'skip';
+            
+            if (resolution === 'skip') {
+              results.skipped++;
+              continue;
+            } else if (resolution === 'merge') {
+              // Merge data - update existing lead with new data where available
+              const updatedLead = {
+                ...existingLead,
+                name: leadData.name || existingLead.name,
+                phone: leadData.phone || existingLead.phone,
+                company: leadData.company || existingLead.company,
+                title: leadData.title || existingLead.title,
+                address: leadData.address || existingLead.address,
+                value: leadData.value || existingLead.value,
+                source: leadData.source || existingLead.source,
+                updatedAt: new Date().toISOString()
+              };
+
+              // Add merge note
+              updatedLead.notes = [...(existingLead.notes || []), {
+                id: Date.now(),
+                content: `Lead data merged from CSV import. Updated fields: ${Object.keys(leadData).filter(key => leadData[key] && leadData[key] !== existingLead[key]).join(', ')}`,
+                createdAt: new Date().toISOString(),
+                createdBy: 'CSV Import Merge'
+              }];
+
+              // Update the existing lead
+              const leadIndex = leads.findIndex(l => l.Id === existingLead.Id);
+              if (leadIndex !== -1) {
+                leads[leadIndex] = updatedLead;
+                results.merged++;
+              }
+              continue;
+            }
           }
 
           // Create new lead
@@ -412,7 +473,12 @@ async bulkUpdateStage(leadIds, stage) {
             assignedUser: leadData.assignedUser || 'System',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            notes: [],
+            notes: [{
+              id: 1,
+              content: 'Lead created via CSV import',
+              createdAt: new Date().toISOString(),
+              createdBy: 'CSV Import'
+            }],
             statusHistory: [
               {
                 status: leadData.status || 'New',
