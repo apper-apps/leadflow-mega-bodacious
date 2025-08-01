@@ -29,6 +29,7 @@ async create(leadData) {
       assignedUser: leadData.assignedUser || null,
       closeDate: leadData.closeDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       winProbability: leadData.winProbability || 25,
+      customFields: leadData.customFields || {},
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       assignmentHistory: leadData.assignedUser ? [{
@@ -54,6 +55,10 @@ async update(id, updateData) {
     const updatedLead = {
       ...existingLead,
       ...updateData,
+      customFields: {
+        ...existingLead.customFields,
+        ...updateData.customFields
+      },
       updatedAt: new Date().toISOString()
     };
     

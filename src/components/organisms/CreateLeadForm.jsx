@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
-import { leadService } from "@/services/api/leadService";
+import CustomFieldRenderer from "@/components/organisms/CustomFieldRenderer";
+import { customFieldService } from "@/services/api/customFieldService";
 import { leadSourceService } from "@/services/api/leadSourceService";
+import { leadService } from "@/services/api/leadService";
+import FormField from "@/components/molecules/FormField";
+import Button from "@/components/atoms/Button";
 
 const CreateLeadForm = ({ onSuccess, onCancel }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
@@ -14,24 +16,43 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
     source: "",
     value: "",
   });
+  const [customFieldValues, setCustomFieldValues] = useState({});
   const [sources, setSources] = useState([]);
+  const [customFields, setCustomFields] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sourcesLoading, setSourcesLoading] = useState(true);
+  const [customFieldsLoading, setCustomFieldsLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
+useEffect(() => {
     loadSources();
+    loadCustomFields();
   }, []);
 
   const loadSources = async () => {
     try {
       setSourcesLoading(true);
       const data = await leadSourceService.getAll();
-      setSources(data);
-    } catch (err) {
+      setSources(data.map(source => ({
+        value: source.name,
+        name: source.name
+      })));
+    } catch (error) {
       toast.error("Failed to load lead sources");
     } finally {
       setSourcesLoading(false);
+    }
+  };
+
+  const loadCustomFields = async () => {
+    try {
+      setCustomFieldsLoading(true);
+      const data = await customFieldService.getAll();
+      setCustomFields(data);
+    } catch (error) {
+      console.error("Failed to load custom fields:", error);
+} finally {
+      setCustomFieldsLoading(false);
     }
   };
 
@@ -45,7 +66,23 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
     }
   };
 
-  const validateForm = () => {
+  const handleCustomFieldChange = (newValues) => {
+    setCustomFieldValues(newValues);
+    
+    // Clear custom field errors
+    const customFieldErrors = Object.keys(errors).filter(key => 
+      customFields.some(field => field.name === key)
+    );
+    if (customFieldErrors.length > 0) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        customFieldErrors.forEach(key => delete newErrors[key]);
+        return newErrors;
+      });
+    }
+  };
+
+const validateForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
@@ -76,11 +113,18 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
       newErrors.value = "Value must be a positive number";
     }
 
+    // Validate custom fields
+    customFields.forEach(field => {
+      if (field.required && !customFieldValues[field.name]) {
+        newErrors[field.name] = `${field.label} is required`;
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -91,7 +135,8 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
       setLoading(true);
       const leadData = {
         ...formData,
-        value: Number(formData.value)
+        value: Number(formData.value),
+        customFields: customFieldValues
       };
       
       await leadService.create(leadData);
@@ -104,7 +149,7 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
     }
   };
 
-  return (
+return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
@@ -173,6 +218,13 @@ const CreateLeadForm = ({ onSuccess, onCancel }) => {
           error={errors.value}
         />
       </div>
+
+      <CustomFieldRenderer
+        customFields={customFields}
+        values={customFieldValues}
+        onChange={handleCustomFieldChange}
+        errors={errors}
+      />
 
       <div className="flex justify-end space-x-4 pt-6 border-t">
         <Button

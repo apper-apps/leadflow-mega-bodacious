@@ -1,6 +1,5 @@
 import Input from "@/components/atoms/Input";
 import Select from "@/components/atoms/Select";
-
 const FormField = ({ 
   type = "input", 
   label, 
@@ -13,7 +12,7 @@ const FormField = ({
   error,
   ...props 
 }) => {
-  if (type === "select") {
+if (type === "select") {
     return (
       <Select
         label={label}
@@ -26,8 +25,8 @@ const FormField = ({
       >
         <option value="">{placeholder || "Select an option"}</option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.name}
+          <option key={option.value || option.Id} value={option.value || option.name}>
+            {option.label || option.name}
           </option>
         ))}
       </Select>

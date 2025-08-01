@@ -11,20 +11,24 @@ import FormField from '@/components/molecules/FormField';
 import StatusBadge from '@/components/molecules/StatusBadge';
 import TaskModal from '@/components/organisms/TaskModal';
 import CommunicationModal from '@/components/organisms/CommunicationModal';
+import CustomFieldRenderer from '@/components/organisms/CustomFieldRenderer';
 import { leadService } from '@/services/api/leadService';
 import { leadSourceService } from '@/services/api/leadSourceService';
 import { taskService } from '@/services/api/taskService';
 import { communicationService } from '@/services/api/communicationService';
 import { teamMemberService } from '@/services/api/teamMemberService';
+import { customFieldService } from '@/services/api/customFieldService';
 
 const LeadDetail = ({ lead, onUpdate, onClose }) => {
 const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 const [formData, setFormData] = useState({});
+  const [customFieldValues, setCustomFieldValues] = useState({});
   const [newNote, setNewNote] = useState('');
   const [editingNote, setEditingNote] = useState(null);
   const [editNoteContent, setEditNoteContent] = useState('');
   const [sources, setSources] = useState([]);
+  const [customFields, setCustomFields] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [communications, setCommunications] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -35,6 +39,7 @@ const [formData, setFormData] = useState({});
   const [statusOptions] = useState([
     'New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'
   ]);
+
 useEffect(() => {
     setFormData({
       name: lead.name || '',
@@ -48,11 +53,22 @@ useEffect(() => {
       value: lead.value || 0,
       assignedUser: lead.assignedUser || ''
     });
+    setCustomFieldValues(lead.customFields || {});
     loadSources();
+    loadCustomFields();
     loadTasks();
     loadTeamMembers();
     loadAssignmentHistory();
   }, [lead]);
+
+  const loadCustomFields = async () => {
+    try {
+      const customFieldsData = await customFieldService.getAll();
+      setCustomFields(customFieldsData);
+    } catch (error) {
+      console.error('Failed to load custom fields:', error);
+    }
+  };
 
 const loadSources = async () => {
     try {
@@ -98,6 +114,10 @@ const handleInputChange = (e) => {
     }));
   };
 
+  const handleCustomFieldChange = (newValues) => {
+    setCustomFieldValues(newValues);
+  };
+
   const handleAssignmentChange = async (newAssignedUser) => {
     try {
       setLoading(true);
@@ -120,7 +140,10 @@ const handleInputChange = (e) => {
 const handleSave = async () => {
     setLoading(true);
     try {
-      const updateData = { ...formData };
+      const updateData = { 
+        ...formData,
+        customFields: customFieldValues
+      };
       
       // Track assignment change if it was modified
       if (formData.assignedUser !== lead.assignedUser) {
@@ -141,7 +164,7 @@ const handleSave = async () => {
     }
   };
 
-  const handleCancel = () => {
+const handleCancel = () => {
     setFormData({
       name: lead.name || '',
       email: lead.email || '',
@@ -151,8 +174,10 @@ const handleSave = async () => {
       address: lead.address || '',
       source: lead.source || '',
       status: lead.status || '',
-      value: lead.value || 0
+      value: lead.value || 0,
+      assignedUser: lead.assignedUser || ''
     });
+    setCustomFieldValues(lead.customFields || {});
     setIsEditing(false);
   };
 
@@ -578,6 +603,38 @@ try {
               </p>
             </FormField>
           </div>
+
+          {customFields.length > 0 && (
+            <div className="mt-6 pt-6 border-t">
+              <h4 className="text-md font-medium text-gray-900 mb-4">Custom Fields</h4>
+              {isEditing ? (
+                <CustomFieldRenderer
+                  customFields={customFields}
+                  values={customFieldValues}
+                  onChange={handleCustomFieldChange}
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {customFields.map(field => {
+                    const value = lead.customFields?.[field.name] || customFieldValues[field.name];
+                    if (!value) return null;
+                    
+                    return (
+                      <FormField key={field.Id} label={field.label}>
+                        <p className="text-gray-900">
+                          {field.type === "dropdown" && field.options
+                            ? field.options.find(opt => opt.value === value)?.label || value
+                            : field.type === "date"
+                            ? format(new Date(value), 'MMM dd, yyyy')
+                            : value}
+                        </p>
+                      </FormField>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
 {/* Assignment History */}
