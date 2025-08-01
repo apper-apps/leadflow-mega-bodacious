@@ -1,7 +1,9 @@
 import workflowData from "@/services/mockData/workflowAutomation.json";
+import React from "react";
+import { taskService } from "@/services/api/taskService";
 import { leadService } from "@/services/api/leadService";
 import { teamMemberService } from "@/services/api/teamMemberService";
-import { taskService } from "@/services/api/taskService";
+import Error from "@/components/ui/Error";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -39,29 +41,30 @@ const workflowService = {
     return { ...newRule };
   },
 
-  async updateRule(id, updateData) {
+async updateRule(id, updateData) {
     await delay(300);
-    const index = rules.findIndex(rule => rule.Id === parseInt(id));
-    if (index === -1) {
+    const ruleIndex = rules.findIndex(r => r.Id === parseInt(id));
+    if (ruleIndex === -1) {
       throw new Error("Rule not found");
     }
     
-    const updatedRule = {
-      ...rules[index],
+    rules[ruleIndex] = {
+      ...rules[ruleIndex],
       ...updateData,
       updatedAt: new Date().toISOString()
     };
-    rules[index] = updatedRule;
-    return { ...updatedRule };
+    
+    return { ...rules[ruleIndex] };
   },
 
   async deleteRule(id) {
-    await delay(250);
-    const index = rules.findIndex(rule => rule.Id === parseInt(id));
-    if (index === -1) {
+    await delay(200);
+    const ruleIndex = rules.findIndex(r => r.Id === parseInt(id));
+    if (ruleIndex === -1) {
       throw new Error("Rule not found");
     }
-    rules.splice(index, 1);
+    
+    rules.splice(ruleIndex, 1);
     return true;
   },
 

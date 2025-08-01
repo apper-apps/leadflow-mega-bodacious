@@ -172,9 +172,21 @@ const getActionIcon = (actionType) => {
     }
   };
 
-  if (loading) return <Loading />;
-  if (error) return <Error message={error} onRetry={loadData} />;
-
+if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Error message={error} onRetry={loadData} />
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Header */}
