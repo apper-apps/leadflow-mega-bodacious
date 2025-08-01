@@ -127,11 +127,6 @@ const Leads = () => {
     }
   };
 
-  const handleCsvImportSuccess = () => {
-    setShowCsvImport(false);
-    loadLeads();
-    toast.success('CSV import completed successfully');
-  };
 const handleCsvImportSuccess = () => {
     setShowCsvImport(false);
     loadLeads();
