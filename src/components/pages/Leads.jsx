@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import { toast } from 'react-toastify'
-import { useNavigate } from 'react-router-dom'
-import { leadService } from '@/services/api/leadService'
-import ApperIcon from '@/components/ApperIcon'
-import Modal from '@/components/molecules/Modal'
-import CustomFieldManager from '@/components/organisms/CustomFieldManager'
-import LeadsTable from '@/components/organisms/LeadsTable'
-import LeadDetail from '@/components/organisms/LeadDetail'
-import CreateLeadForm from '@/components/organisms/CreateLeadForm'
-import CsvImportModal from '@/components/organisms/CsvImportModal'
-import Button from '@/components/atoms/Button'
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { leadService } from "@/services/api/leadService";
+import ApperIcon from "@/components/ApperIcon";
+import Modal from "@/components/molecules/Modal";
+import CustomFieldManager from "@/components/organisms/CustomFieldManager";
+import LeadsTable from "@/components/organisms/LeadsTable";
+import CsvImportModal from "@/components/organisms/CsvImportModal";
+import LeadDetail from "@/components/organisms/LeadDetail";
+import CreateLeadForm from "@/components/organisms/CreateLeadForm";
+import Button from "@/components/atoms/Button";
+
 const Leads = () => {
-const navigate = useNavigate();
-const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showCustomFieldManager, setShowCustomFieldManager] = useState(false);
-  const [showCsvImportModal, setShowCsvImportModal] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [error, setError] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showLeadDetail, setShowLeadDetail] = useState(false);
-  const [bulkOperationLoading, setBulkOperationLoading] = useState(false);
+  const [showCustomFieldManager, setShowCustomFieldManager] = useState(false);
+  const [showCsvImport, setShowCsvImport] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadLeads();
@@ -29,12 +29,13 @@ const [showCreateModal, setShowCreateModal] = useState(false);
   const loadLeads = async () => {
     try {
       setLoading(true);
-      setError("");
+      setError('');
       const data = await leadService.getAll();
       setLeads(data);
-    } catch (err) {
-      setError("Failed to load leads");
-      toast.error("Failed to load leads");
+    } catch (error) {
+      console.error('Failed to load leads:', error);
+      setError('Failed to load leads data');
+      toast.error('Failed to load leads data');
     } finally {
       setLoading(false);
     }
@@ -45,8 +46,9 @@ const [showCreateModal, setShowCreateModal] = useState(false);
   };
 
   const handleCreateSuccess = () => {
-setShowCreateModal(false);
+    setShowCreateModal(false);
     loadLeads();
+    toast.success('Lead created successfully');
   };
 
   const handleLeadClick = (lead) => {
@@ -61,142 +63,151 @@ setShowCreateModal(false);
 
   const handleLeadUpdate = () => {
     loadLeads();
-    toast.success("Lead updated successfully");
+    toast.success('Lead updated successfully');
   };
 
   const handleDeleteLead = async (leadId) => {
-    if (window.confirm("Are you sure you want to delete this lead?")) {
-      try {
-        await leadService.delete(leadId);
-        toast.success("Lead deleted successfully");
-        loadLeads();
-      } catch (err) {
-        toast.error("Failed to delete lead");
-      }
+    const confirmMessage = `Are you sure you want to delete this lead? This action cannot be undone.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await leadService.delete(leadId);
+      loadLeads();
+      toast.success('Lead deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+      toast.error('Failed to delete lead');
     }
-};
+  };
 
   const handleBulkStatusChange = async (leadIds, status) => {
-    if (!status || leadIds.length === 0) return;
-    
-    setBulkOperationLoading(true);
     try {
       await leadService.bulkUpdateStatus(leadIds, status);
-      toast.success(`Updated status for ${leadIds.length} leads`);
       loadLeads();
-} catch (err) {
-      toast.error("Failed to update lead status");
-    } finally {
-      setBulkOperationLoading(false);
+      toast.success(`Updated ${leadIds.length} lead(s) status to ${status}`);
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+      toast.error('Failed to update lead status');
     }
   };
 
   const handleBulkAssignUser = async (leadIds, assignedUser) => {
-    if (!assignedUser || leadIds.length === 0) return;
-    
-    setBulkOperationLoading(true);
     try {
       await leadService.bulkAssignUser(leadIds, assignedUser);
-      toast.success(`Assigned ${leadIds.length} leads to ${assignedUser}`);
       loadLeads();
-    } catch (err) {
-      toast.error("Failed to assign leads");
-    } finally {
-      setBulkOperationLoading(false);
+      toast.success(`Assigned ${leadIds.length} lead(s) to ${assignedUser}`);
+    } catch (error) {
+      console.error('Failed to assign leads:', error);
+      toast.error('Failed to assign leads');
     }
   };
 
   const handleBulkUpdateSource = async (leadIds, source) => {
-    if (!source || leadIds.length === 0) return;
-    
-    setBulkOperationLoading(true);
     try {
       await leadService.bulkUpdateSource(leadIds, source);
-      toast.success(`Updated source for ${leadIds.length} leads`);
       loadLeads();
-    } catch (err) {
-      toast.error("Failed to update lead sources");
-    } finally {
-      setBulkOperationLoading(false);
+      toast.success(`Updated ${leadIds.length} lead(s) source to ${source}`);
+    } catch (error) {
+      console.error('Failed to update lead source:', error);
+      toast.error('Failed to update lead source');
     }
-};
+  };
 
   const handleBulkDelete = async (leadIds) => {
-    if (leadIds.length === 0) return;
-    
-    const confirmMessage = `Are you sure you want to delete ${leadIds.length} lead${leadIds.length > 1 ? 's' : ''}? This action cannot be undone.`;
-    
-    if (window.confirm(confirmMessage)) {
-      setBulkOperationLoading(true);
-      try {
-        await leadService.bulkDelete(leadIds);
-        toast.success(`Deleted ${leadIds.length} leads successfully`);
-        loadLeads();
-      } catch (err) {
-        toast.error("Failed to delete leads");
-      } finally {
-        setBulkOperationLoading(false);
-      }
+    const confirmMessage = `Are you sure you want to delete ${leadIds.length} lead(s)? This action cannot be undone.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await leadService.bulkDelete(leadIds);
+      loadLeads();
+      toast.success(`Deleted ${leadIds.length} lead(s) successfully`);
+    } catch (error) {
+      console.error('Failed to delete leads:', error);
+      toast.error('Failed to delete leads');
     }
   };
 
   const handleCsvImportSuccess = () => {
+    setShowCsvImport(false);
     loadLeads();
+    toast.success('CSV import completed successfully');
+  };
+const handleCsvImportSuccess = () => {
+    setShowCsvImport(false);
+    loadLeads();
+    toast.success('CSV import completed successfully');
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Leads</h1>
-        <p className="text-gray-600">
-          Manage your leads and track their progress through your sales pipeline.
-        </p>
-      </div>
-
-<div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
+          <p className="text-gray-600 mt-1">
+            Manage and track all your leads in one place
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
           <Button
             variant="outline"
             onClick={() => setShowCustomFieldManager(true)}
-            className="flex items-center space-x-2"
           >
             <ApperIcon name="Settings" size={16} />
-            <span>Manage Custom Fields</span>
+            Custom Fields
           </Button>
           <Button
             variant="outline"
-            onClick={() => setShowCsvImportModal(true)}
-            className="flex items-center space-x-2"
+            onClick={() => setShowCsvImport(true)}
           >
             <ApperIcon name="Upload" size={16} />
-            <span>Import CSV</span>
+            Import CSV
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/workflows')}
-            className="flex items-center space-x-2"
-          >
-            <ApperIcon name="Zap" size={16} />
-            <span>Workflows</span>
+          <Button onClick={handleCreateLead}>
+            <ApperIcon name="Plus" size={16} />
+            Create Lead
           </Button>
         </div>
       </div>
 
-<LeadsTable
-        leads={leads}
-        loading={loading || bulkOperationLoading}
-        error={error}
-        onRetry={loadLeads}
-        onCreateLead={handleCreateLead}
-        onDeleteLead={handleDeleteLead}
-        onLeadClick={handleLeadClick}
-        onBulkStatusChange={handleBulkStatusChange}
-        onBulkAssignUser={handleBulkAssignUser}
-        onBulkUpdateSource={handleBulkUpdateSource}
-        onBulkDelete={handleBulkDelete}
-      />
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      )}
 
-<Modal
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-12">
+          <div className="text-red-500 mb-4">
+            <ApperIcon name="AlertCircle" size={48} />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load leads</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadLeads} variant="outline">
+            <ApperIcon name="RefreshCw" size={16} />
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* Leads Table */}
+      {!loading && !error && (
+        <LeadsTable
+          leads={leads}
+          onLeadClick={handleLeadClick}
+          onLeadUpdate={handleLeadUpdate}
+          onDeleteLead={handleDeleteLead}
+          onBulkStatusChange={handleBulkStatusChange}
+          onBulkAssignUser={handleBulkAssignUser}
+          onBulkUpdateSource={handleBulkUpdateSource}
+          onBulkDelete={handleBulkDelete}
+        />
+      )}
+
+      {/* Create Lead Modal */}
+      <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title="Create New Lead"
@@ -208,16 +219,8 @@ setShowCreateModal(false);
         />
       </Modal>
 
-<Modal
-        isOpen={showCustomFieldManager}
-        onClose={() => setShowCustomFieldManager(false)}
-        title="Custom Field Management"
-        size="xl"
-      >
-        <CustomFieldManager />
-      </Modal>
-
-<Modal
+      {/* Lead Detail Modal */}
+      <Modal
         isOpen={showLeadDetail}
         onClose={handleLeadDetailClose}
         title="Lead Details"
@@ -232,10 +235,23 @@ setShowCreateModal(false);
         )}
       </Modal>
 
+      {/* Custom Field Manager Modal */}
+      <Modal
+        isOpen={showCustomFieldManager}
+        onClose={() => setShowCustomFieldManager(false)}
+        title="Custom Field Manager"
+        size="lg"
+      >
+        <CustomFieldManager
+          onClose={() => setShowCustomFieldManager(false)}
+        />
+      </Modal>
+
+      {/* CSV Import Modal */}
       <CsvImportModal
-        isOpen={showCsvImportModal}
-        onClose={() => setShowCsvImportModal(false)}
-        onImportSuccess={handleCsvImportSuccess}
+        isOpen={showCsvImport}
+        onClose={() => setShowCsvImport(false)}
+        onSuccess={handleCsvImportSuccess}
       />
     </div>
   );
