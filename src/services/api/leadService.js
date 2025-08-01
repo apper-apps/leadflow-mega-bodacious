@@ -19,13 +19,15 @@ export const leadService = {
     return { ...lead };
   },
 
-  async create(leadData) {
+async create(leadData) {
     await delay(400);
     const maxId = Math.max(...leads.map(lead => lead.Id), 0);
     const newLead = {
       Id: maxId + 1,
       ...leadData,
       status: "New",
+      closeDate: leadData.closeDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      winProbability: leadData.winProbability || 25,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

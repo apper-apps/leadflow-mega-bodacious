@@ -10,6 +10,8 @@
     "status": "New",
     "source": "Website",
     "value": 25000,
+    "closeDate": "2024-03-15T00:00:00Z",
+    "winProbability": 25,
     "createdAt": "2024-01-15T10:30:00Z",
     "updatedAt": "2024-01-15T10:30:00Z",
     "notes": [
@@ -39,6 +41,8 @@
     "status": "Contacted",
     "source": "Referral",
     "value": 45000,
+    "closeDate": "2024-02-28T00:00:00Z",
+    "winProbability": 40,
     "createdAt": "2024-01-14T14:20:00Z",
     "updatedAt": "2024-01-16T09:15:00Z",
     "notes": [
@@ -79,6 +83,8 @@
     "status": "Qualified",
     "source": "LinkedIn",
     "value": 75000,
+    "closeDate": "2024-02-15T00:00:00Z",
+    "winProbability": 65,
     "createdAt": "2024-01-12T16:45:00Z",
     "updatedAt": "2024-01-17T11:30:00Z",
     "notes": [
@@ -124,6 +130,8 @@
     "status": "Proposal",
     "source": "Cold Call",
     "value": 32000,
+    "closeDate": "2024-01-31T00:00:00Z",
+    "winProbability": 75,
     "createdAt": "2024-01-10T09:00:00Z",
     "updatedAt": "2024-01-18T15:20:00Z",
     "notes": [
@@ -174,6 +182,8 @@
     "status": "Won",
     "source": "Trade Show",
     "value": 120000,
+    "closeDate": "2024-01-19T00:00:00Z",
+    "winProbability": 100,
     "createdAt": "2024-01-08T13:15:00Z",
     "updatedAt": "2024-01-19T10:45:00Z",
     "notes": [
@@ -229,6 +239,8 @@
     "status": "Lost",
     "source": "Website",
     "value": 18000,
+    "closeDate": "2024-01-20T00:00:00Z",
+    "winProbability": 0,
     "createdAt": "2024-01-05T11:30:00Z",
     "updatedAt": "2024-01-20T14:00:00Z",
     "notes": [
@@ -284,6 +296,8 @@
     "status": "New",
     "source": "Referral",
     "value": 28000,
+    "closeDate": "2024-04-30T00:00:00Z",
+    "winProbability": 30,
     "createdAt": "2024-01-20T08:45:00Z",
     "updatedAt": "2024-01-20T08:45:00Z",
     "notes": [
@@ -313,6 +327,8 @@
     "status": "Contacted",
     "source": "LinkedIn",
     "value": 55000,
+    "closeDate": "2024-03-30T00:00:00Z",
+    "winProbability": 45,
     "createdAt": "2024-01-18T12:20:00Z",
     "updatedAt": "2024-01-21T16:30:00Z",
     "notes": [
@@ -353,6 +369,8 @@
     "status": "Qualified",
     "source": "Cold Call",
     "value": 95000,
+    "closeDate": "2024-02-28T00:00:00Z",
+    "winProbability": 70,
     "createdAt": "2024-01-16T15:10:00Z",
     "updatedAt": "2024-01-22T09:25:00Z",
     "notes": [
@@ -398,6 +416,8 @@
     "status": "Proposal",
     "source": "Website",
     "value": 42000,
+    "closeDate": "2024-02-14T00:00:00Z",
+    "winProbability": 80,
     "createdAt": "2024-01-14T10:35:00Z",
     "updatedAt": "2024-01-23T13:15:00Z",
     "notes": [

@@ -35,10 +35,10 @@ const LeadsTable = ({
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        if (sortConfig.key === "value") {
+if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
           aValue = Number(aValue);
           bValue = Number(bValue);
-        } else if (sortConfig.key === "createdAt") {
+        } else if (sortConfig.key === "createdAt" || sortConfig.key === "closeDate") {
           aValue = new Date(aValue);
           bValue = new Date(bValue);
         } else {
@@ -114,7 +114,7 @@ const LeadsTable = ({
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  {[
+{[
                     { key: "name", label: "Name" },
                     { key: "email", label: "Email" },
                     { key: "phone", label: "Phone" },
@@ -122,6 +122,8 @@ const LeadsTable = ({
                     { key: "status", label: "Status" },
                     { key: "source", label: "Source" },
                     { key: "value", label: "Value" },
+                    { key: "closeDate", label: "Close Date" },
+                    { key: "winProbability", label: "Win %" },
                     { key: "createdAt", label: "Created" },
                   ].map((column) => (
                     <th
@@ -170,8 +172,22 @@ const LeadsTable = ({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {lead.source}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ${lead.value.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {format(new Date(lead.closeDate), "MMM dd, yyyy")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <div className="w-12 bg-gray-200 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full"
+                            style={{ width: `${lead.winProbability}%` }}
+                          />
+                        </div>
+                        {lead.winProbability}%
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {format(new Date(lead.createdAt), "MMM dd, yyyy")}

@@ -97,11 +97,14 @@ const PipelineBoard = ({ leads, loading, error, onRetry, onLeadUpdate }) => {
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, stage.name)}
           >
-            <div className="flex items-center justify-between mb-4">
+<div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-semibold text-gray-900">{stage.name}</h3>
                 <p className="text-sm text-gray-600">
-                  {stageLeads.length} leads • ${stageValue.toLocaleString()}
+                  {stageLeads.length} leads
+                </p>
+                <p className="text-lg font-bold text-gray-900">
+                  ${stageValue.toLocaleString()}
                 </p>
               </div>
               <div 
