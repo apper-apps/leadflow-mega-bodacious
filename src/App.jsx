@@ -1,7 +1,7 @@
+import "@/index.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import React from "react";
-import "@/index.css";
 import Layout from "@/components/organisms/Layout";
 import Pipeline from "@/components/pages/Pipeline";
 import Tasks from "@/components/pages/Tasks";
@@ -12,28 +12,28 @@ import Leads from "@/components/pages/Leads";
 
 function App() {
   return (
-<BrowserRouter>
+    <BrowserRouter>
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="pipeline" element={<Pipeline />} />
-          <Route path="workflows" element={<WorkflowAutomation />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="communications" element={<Communications />} />
+          <Route path="/leads" element={<Leads />} />
+          <Route path="/pipeline" element={<Pipeline />} />
+          <Route path="/workflows" element={<WorkflowAutomation />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/communications" element={<Communications />} />
         </Routes>
       </Layout>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        theme="light" 
         style={{ zIndex: 9999 }}
       />
     </BrowserRouter>
