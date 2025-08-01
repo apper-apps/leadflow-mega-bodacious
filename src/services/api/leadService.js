@@ -347,8 +347,7 @@ async updateNote(leadId, noteId, noteContent) {
     
     return deletedIds;
   },
-
-  async bulkUpdateStage(leadIds, stage) {
+async bulkUpdateStage(leadIds, stage) {
     await delay(300);
     const updatedLeads = [];
     
@@ -365,9 +364,90 @@ async updateNote(leadId, noteId, noteContent) {
       }
     }
     
-return updatedLeads;
+    return updatedLeads;
   },
 
+  async bulkImport(leadsData, onProgress = () => {}) {
+    const batchSize = 10;
+    const results = { successful: 0, failed: 0, errors: [] };
+    
+    for (let i = 0; i < leadsData.length; i += batchSize) {
+      const batch = leadsData.slice(i, i + batchSize);
+      
+      for (const leadData of batch) {
+        try {
+          // Validate required fields
+          if (!leadData.name || !leadData.email) {
+            results.failed++;
+            results.errors.push(`Lead missing required fields: ${JSON.stringify(leadData)}`);
+            continue;
+          }
+
+          // Check for duplicate email
+          const existingLead = leads.find(lead => 
+            lead.email.toLowerCase() === leadData.email.toLowerCase()
+          );
+          
+          if (existingLead) {
+            results.failed++;
+            results.errors.push(`Duplicate email: ${leadData.email}`);
+            continue;
+          }
+
+          // Create new lead
+          const newId = Math.max(...leads.map(l => l.Id)) + 1;
+          const newLead = {
+            Id: newId,
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || '',
+            company: leadData.company || '',
+            title: leadData.title || '',
+            address: leadData.address || '',
+            status: leadData.status || 'New',
+            source: leadData.source || 'Import',
+            value: leadData.value || 0,
+            closeDate: leadData.closeDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            winProbability: leadData.winProbability || 25,
+            assignedUser: leadData.assignedUser || 'System',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            notes: [],
+            statusHistory: [
+              {
+                status: leadData.status || 'New',
+                changedAt: new Date().toISOString(),
+                changedBy: 'CSV Import'
+              }
+            ],
+            assignmentHistory: [
+              {
+                assignedUser: leadData.assignedUser || 'System',
+                assignedAt: new Date().toISOString(),
+                assignedBy: 'CSV Import',
+                reason: 'Bulk import'
+              }
+            ]
+          };
+
+          leads.push(newLead);
+          results.successful++;
+        } catch (error) {
+          results.failed++;
+          results.errors.push(`Error importing lead: ${error.message}`);
+        }
+      }
+      
+      // Update progress
+      const progress = Math.round(((i + batch.length) / leadsData.length) * 100);
+      onProgress(progress);
+      
+      // Simulate processing delay
+      await delay(100);
+    }
+    
+    return results;
+  },
 async getStatusHistory(id) {
     await delay(200);
     const lead = leads.find(lead => lead.Id === parseInt(id));

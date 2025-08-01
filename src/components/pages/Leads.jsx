@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { leadService } from "@/services/api/leadService";
-import ApperIcon from "@/components/ApperIcon";
-import Modal from "@/components/molecules/Modal";
-import CustomFieldManager from "@/components/organisms/CustomFieldManager";
-import LeadsTable from "@/components/organisms/LeadsTable";
-import LeadDetail from "@/components/organisms/LeadDetail";
-import CreateLeadForm from "@/components/organisms/CreateLeadForm";
-import Button from "@/components/atoms/Button";
-
+import React, { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
+import { leadService } from '@/services/api/leadService'
+import ApperIcon from '@/components/ApperIcon'
+import Modal from '@/components/molecules/Modal'
+import CustomFieldManager from '@/components/organisms/CustomFieldManager'
+import LeadsTable from '@/components/organisms/LeadsTable'
+import LeadDetail from '@/components/organisms/LeadDetail'
+import CreateLeadForm from '@/components/organisms/CreateLeadForm'
+import CsvImportModal from '@/components/organisms/CsvImportModal'
+import Button from '@/components/atoms/Button'
 const Leads = () => {
 const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCustomFieldManager, setShowCustomFieldManager] = useState(false);
+  const [showCsvImportModal, setShowCsvImportModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [showLeadDetail, setShowLeadDetail] = useState(false);
   const [bulkOperationLoading, setBulkOperationLoading] = useState(false);
@@ -116,7 +117,7 @@ setShowCreateModal(false);
     } finally {
       setBulkOperationLoading(false);
     }
-  };
+};
 
   const handleBulkDelete = async (leadIds) => {
     if (leadIds.length === 0) return;
@@ -137,6 +138,10 @@ setShowCreateModal(false);
     }
   };
 
+  const handleCsvImportSuccess = () => {
+    loadLeads();
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -155,6 +160,14 @@ setShowCreateModal(false);
           >
             <ApperIcon name="Settings" size={16} />
             <span>Manage Custom Fields</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowCsvImportModal(true)}
+            className="flex items-center space-x-2"
+          >
+            <ApperIcon name="Upload" size={16} />
+            <span>Import CSV</span>
           </Button>
         </div>
       </div>
@@ -194,7 +207,7 @@ setShowCreateModal(false);
         <CustomFieldManager />
       </Modal>
 
-      <Modal
+<Modal
         isOpen={showLeadDetail}
         onClose={handleLeadDetailClose}
         title="Lead Details"
@@ -208,6 +221,12 @@ setShowCreateModal(false);
           />
         )}
       </Modal>
+
+      <CsvImportModal
+        isOpen={showCsvImportModal}
+        onClose={() => setShowCsvImportModal(false)}
+        onImportSuccess={handleCsvImportSuccess}
+      />
     </div>
   );
 };
