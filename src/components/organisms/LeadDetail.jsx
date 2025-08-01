@@ -15,16 +15,20 @@ import { leadService } from '@/services/api/leadService';
 import { leadSourceService } from '@/services/api/leadSourceService';
 import { taskService } from '@/services/api/taskService';
 import { communicationService } from '@/services/api/communicationService';
+import { teamMemberService } from '@/services/api/teamMemberService';
+
 const LeadDetail = ({ lead, onUpdate, onClose }) => {
 const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({});
+const [formData, setFormData] = useState({});
   const [newNote, setNewNote] = useState('');
   const [editingNote, setEditingNote] = useState(null);
   const [editNoteContent, setEditNoteContent] = useState('');
   const [sources, setSources] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [communications, setCommunications] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [assignmentHistory, setAssignmentHistory] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showCommModal, setShowCommModal] = useState(false);
   const [editingComm, setEditingComm] = useState(null);
@@ -41,10 +45,13 @@ useEffect(() => {
       address: lead.address || '',
       source: lead.source || '',
       status: lead.status || '',
-      value: lead.value || 0
+      value: lead.value || 0,
+      assignedUser: lead.assignedUser || ''
     });
     loadSources();
     loadTasks();
+    loadTeamMembers();
+    loadAssignmentHistory();
   }, [lead]);
 
 const loadSources = async () => {
@@ -65,7 +72,25 @@ const loadSources = async () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const loadTeamMembers = async () => {
+    try {
+      const membersData = await teamMemberService.getActive();
+      setTeamMembers(membersData);
+    } catch (error) {
+      console.error('Failed to load team members:', error);
+    }
+  };
+
+  const loadAssignmentHistory = async () => {
+    try {
+      const history = await leadService.getAssignmentHistory(lead.Id);
+      setAssignmentHistory(history);
+    } catch (error) {
+      console.error('Failed to load assignment history:', error);
+    }
+  };
+
+const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -73,11 +98,40 @@ const loadSources = async () => {
     }));
   };
 
-  const handleSave = async () => {
+  const handleAssignmentChange = async (newAssignedUser) => {
+    try {
+      setLoading(true);
+      await leadService.assignLead(lead.Id, newAssignedUser, "User", "Manual reassignment");
+      setFormData(prev => ({
+        ...prev,
+        assignedUser: newAssignedUser
+      }));
+      toast.success(`Lead assigned to ${newAssignedUser || 'Unassigned'}`);
+      loadAssignmentHistory();
+      onUpdate();
+    } catch (error) {
+      toast.error('Failed to update assignment');
+      console.error('Assignment error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+const handleSave = async () => {
     setLoading(true);
     try {
-      await leadService.update(lead.Id, formData);
+      const updateData = { ...formData };
+      
+      // Track assignment change if it was modified
+      if (formData.assignedUser !== lead.assignedUser) {
+        updateData.assignedBy = "User";
+        updateData.assignmentReason = "Updated via lead details";
+      }
+      
+      await leadService.update(lead.Id, updateData);
       setIsEditing(false);
+      toast.success('Lead updated successfully');
+      loadAssignmentHistory();
       onUpdate();
     } catch (error) {
       toast.error('Failed to update lead');
@@ -432,7 +486,7 @@ try {
         </Card>
 
         {/* Lead Details */}
-        <Card className="p-6">
+<Card className="p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <ApperIcon name="Target" size={20} className="mr-2" />
             Lead Details
@@ -474,6 +528,35 @@ try {
                 <p className="text-gray-900">{lead.status}</p>
               )}
             </FormField>
+
+            <FormField label="Assigned To">
+              {isEditing ? (
+                <Select
+                  name="assignedUser"
+                  value={formData.assignedUser}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select team member</option>
+                  {teamMembers.map(member => (
+                    <option key={member.Id} value={member.name}>
+                      {member.name} - {member.role}
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-900">{lead.assignedUser || 'Unassigned'}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="p-1 h-6 w-6"
+                  >
+                    <ApperIcon name="Edit2" size={12} />
+                  </Button>
+                </div>
+              )}
+            </FormField>
             
             <FormField label="Deal Value">
               {isEditing ? (
@@ -496,6 +579,42 @@ try {
             </FormField>
           </div>
         </Card>
+
+{/* Assignment History */}
+        {assignmentHistory && assignmentHistory.length > 0 && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <ApperIcon name="Users" size={20} className="mr-2" />
+              Assignment History
+            </h3>
+            <div className="space-y-3">
+              {assignmentHistory.map((history, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center justify-between py-2 border-l-2 border-blue-200 pl-4"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">
+                        Assigned to {history.assignedUser}
+                      </span>
+                      <p className="text-xs text-gray-600">
+                        by {history.assignedBy} • {history.reason}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {format(new Date(history.assignedAt), 'MMM dd, yyyy HH:mm')}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Status History */}
         {lead.statusHistory && lead.statusHistory.length > 0 && (

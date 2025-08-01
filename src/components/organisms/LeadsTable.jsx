@@ -1,18 +1,18 @@
-import { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import leadSources from "@/services/mockData/leadSources.json";
+import { leadService } from "@/services/api/leadService";
 import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Card from "@/components/atoms/Card";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
 import SearchBar from "@/components/molecules/SearchBar";
 import StatusBadge from "@/components/molecules/StatusBadge";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import { leadService } from "@/services/api/leadService";
-import leadSources from "@/services/mockData/leadSources.json";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import Card from "@/components/atoms/Card";
 const LeadsTable = ({ 
   leads, 
   loading, 
@@ -296,6 +296,7 @@ const uniqueUsers = useMemo(() => {
                     { key: "company", label: "Company" },
                     { key: "status", label: "Status" },
                     { key: "source", label: "Source" },
+                    { key: "assignedUser", label: "Assigned To" },
                     { key: "value", label: "Value" },
                     { key: "closeDate", label: "Close Date" },
                     { key: "winProbability", label: "Win %" },
@@ -346,8 +347,11 @@ const uniqueUsers = useMemo(() => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {lead.source}
+</td>
+<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lead.assignedUser || 'Unassigned'}
                     </td>
-<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ${lead.value.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

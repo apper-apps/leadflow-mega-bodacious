@@ -26,26 +26,51 @@ async create(leadData) {
       Id: maxId + 1,
       ...leadData,
       status: "New",
+      assignedUser: leadData.assignedUser || null,
       closeDate: leadData.closeDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       winProbability: leadData.winProbability || 25,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      assignmentHistory: leadData.assignedUser ? [{
+        assignedUser: leadData.assignedUser,
+        assignedAt: new Date().toISOString(),
+        assignedBy: "System",
+        reason: "Initial assignment"
+      }] : []
     };
     leads.push(newLead);
     return { ...newLead };
   },
 
-  async update(id, updateData) {
+async update(id, updateData) {
     await delay(350);
     const index = leads.findIndex(lead => lead.Id === parseInt(id));
     if (index === -1) {
       throw new Error("Lead not found");
     }
-    leads[index] = {
-      ...leads[index],
+    
+    // Track assignment changes
+    const existingLead = leads[index];
+    const updatedLead = {
+      ...existingLead,
       ...updateData,
       updatedAt: new Date().toISOString()
     };
+    
+    // If assignedUser is being changed, add to assignment history
+    if (updateData.assignedUser && updateData.assignedUser !== existingLead.assignedUser) {
+      if (!updatedLead.assignmentHistory) {
+        updatedLead.assignmentHistory = [];
+      }
+      updatedLead.assignmentHistory.push({
+        assignedUser: updateData.assignedUser,
+        assignedAt: new Date().toISOString(),
+        assignedBy: updateData.assignedBy || "User",
+        reason: updateData.assignmentReason || "Manual reassignment"
+      });
+    }
+    
+    leads[index] = updatedLead;
     return { ...leads[index] };
   },
 
@@ -175,6 +200,48 @@ async getStatusHistory(id) {
     return lead.statusHistory || [];
   },
 
+  async assignLead(id, assignedUser, assignedBy = "User", reason = "Manual assignment") {
+    await delay(300);
+    const index = leads.findIndex(lead => lead.Id === parseInt(id));
+    if (index === -1) {
+      throw new Error("Lead not found");
+    }
+
+    const existingLead = leads[index];
+    
+    // Don't update if assigning to same user
+    if (existingLead.assignedUser === assignedUser) {
+      return { ...existingLead };
+    }
+
+    // Update lead assignment
+    leads[index] = {
+      ...existingLead,
+      assignedUser,
+      updatedAt: new Date().toISOString(),
+      assignmentHistory: [
+        ...(existingLead.assignmentHistory || []),
+        {
+          assignedUser,
+          assignedAt: new Date().toISOString(),
+          assignedBy,
+          reason
+        }
+      ]
+    };
+    
+    return { ...leads[index] };
+  },
+
+  async getAssignmentHistory(id) {
+    await delay(200);
+    const lead = leads.find(lead => lead.Id === parseInt(id));
+    if (!lead) {
+      throw new Error("Lead not found");
+    }
+    return lead.assignmentHistory || [];
+  },
+
   async getUniqueUsers() {
     await delay(100);
     const users = new Set();
@@ -183,8 +250,7 @@ async getStatusHistory(id) {
     });
     return Array.from(users).sort();
   },
-
-  async getFilteredLeads(filterParams) {
+async getFilteredLeads(filterParams) {
     await delay(200);
     let filtered = [...leads];
 
@@ -221,11 +287,12 @@ async getStatusHistory(id) {
       filtered = filtered.filter(lead =>
         lead.name.toLowerCase().includes(searchTerm) ||
         lead.email.toLowerCase().includes(searchTerm) ||
-        lead.company.toLowerCase().includes(searchTerm)
+        lead.company.toLowerCase().includes(searchTerm) ||
+        (lead.assignedUser && lead.assignedUser.toLowerCase().includes(searchTerm))
       );
     }
 
-return filtered.map(lead => ({ ...lead }));
+    return filtered.map(lead => ({ ...lead }));
   },
 
   async getCommunications(id) {

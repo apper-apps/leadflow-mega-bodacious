@@ -12,6 +12,7 @@
     "value": 25000,
     "closeDate": "2024-03-15T00:00:00Z",
     "winProbability": 25,
+    "assignedUser": "Alex Thompson",
     "createdAt": "2024-01-15T10:30:00Z",
     "updatedAt": "2024-01-15T10:30:00Z",
     "notes": [
@@ -28,6 +29,14 @@
         "changedAt": "2024-01-15T10:30:00Z",
         "changedBy": "System"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Alex Thompson",
+        "assignedAt": "2024-01-15T10:30:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -43,6 +52,7 @@
     "value": 45000,
     "closeDate": "2024-02-28T00:00:00Z",
     "winProbability": 40,
+    "assignedUser": "Sarah Chen",
     "createdAt": "2024-01-14T14:20:00Z",
     "updatedAt": "2024-01-16T09:15:00Z",
     "notes": [
@@ -70,6 +80,14 @@
         "changedAt": "2024-01-16T09:15:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Sarah Chen",
+        "assignedAt": "2024-01-14T14:20:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -85,6 +103,7 @@
     "value": 75000,
     "closeDate": "2024-02-15T00:00:00Z",
     "winProbability": 65,
+    "assignedUser": "Mike Rodriguez",
     "createdAt": "2024-01-12T16:45:00Z",
     "updatedAt": "2024-01-17T11:30:00Z",
     "notes": [
@@ -117,6 +136,20 @@
         "changedAt": "2024-01-17T11:30:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Alex Thompson",
+        "assignedAt": "2024-01-12T16:45:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      },
+      {
+        "assignedUser": "Mike Rodriguez",
+        "assignedAt": "2024-01-15T14:20:00Z",
+        "assignedBy": "Sales Manager",
+        "reason": "Expertise in enterprise solutions"
+      }
     ]
   },
   {
@@ -132,6 +165,7 @@
     "value": 32000,
     "closeDate": "2024-01-31T00:00:00Z",
     "winProbability": 75,
+    "assignedUser": "Emily Johnson",
     "createdAt": "2024-01-10T09:00:00Z",
     "updatedAt": "2024-01-18T15:20:00Z",
     "notes": [
@@ -169,6 +203,14 @@
         "changedAt": "2024-01-18T15:20:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Emily Johnson",
+        "assignedAt": "2024-01-10T09:00:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -184,6 +226,7 @@
     "value": 120000,
     "closeDate": "2024-01-19T00:00:00Z",
     "winProbability": 100,
+    "assignedUser": "David Martinez",
     "createdAt": "2024-01-08T13:15:00Z",
     "updatedAt": "2024-01-19T10:45:00Z",
     "notes": [
@@ -226,6 +269,14 @@
         "changedAt": "2024-01-19T10:45:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "David Martinez",
+        "assignedAt": "2024-01-08T13:15:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -241,6 +292,7 @@
     "value": 18000,
     "closeDate": "2024-01-20T00:00:00Z",
     "winProbability": 0,
+    "assignedUser": "Lisa Park",
     "createdAt": "2024-01-05T11:30:00Z",
     "updatedAt": "2024-01-20T14:00:00Z",
     "notes": [
@@ -283,6 +335,14 @@
         "changedAt": "2024-01-20T14:00:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Lisa Park",
+        "assignedAt": "2024-01-05T11:30:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -298,6 +358,7 @@
     "value": 28000,
     "closeDate": "2024-04-30T00:00:00Z",
     "winProbability": 30,
+    "assignedUser": "Alex Thompson",
     "createdAt": "2024-01-20T08:45:00Z",
     "updatedAt": "2024-01-20T08:45:00Z",
     "notes": [
@@ -314,6 +375,14 @@
         "changedAt": "2024-01-20T08:45:00Z",
         "changedBy": "System"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Alex Thompson",
+        "assignedAt": "2024-01-20T08:45:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -329,6 +398,7 @@
     "value": 55000,
     "closeDate": "2024-03-30T00:00:00Z",
     "winProbability": 45,
+    "assignedUser": "Sarah Chen",
     "createdAt": "2024-01-18T12:20:00Z",
     "updatedAt": "2024-01-21T16:30:00Z",
     "notes": [
@@ -356,6 +426,14 @@
         "changedAt": "2024-01-21T16:30:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Sarah Chen",
+        "assignedAt": "2024-01-18T12:20:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -371,6 +449,7 @@
     "value": 95000,
     "closeDate": "2024-02-28T00:00:00Z",
     "winProbability": 70,
+    "assignedUser": "Mike Rodriguez",
     "createdAt": "2024-01-16T15:10:00Z",
     "updatedAt": "2024-01-22T09:25:00Z",
     "notes": [
@@ -403,6 +482,14 @@
         "changedAt": "2024-01-22T09:25:00Z",
         "changedBy": "Sales Rep"
       }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Mike Rodriguez",
+        "assignedAt": "2024-01-16T15:10:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
+      }
     ]
   },
   {
@@ -418,6 +505,7 @@
     "value": 42000,
     "closeDate": "2024-02-14T00:00:00Z",
     "winProbability": 80,
+    "assignedUser": "Emily Johnson",
     "createdAt": "2024-01-14T10:35:00Z",
     "updatedAt": "2024-01-23T13:15:00Z",
     "notes": [
@@ -454,6 +542,14 @@
         "status": "Proposal",
         "changedAt": "2024-01-23T13:15:00Z",
         "changedBy": "Sales Rep"
+      }
+    ],
+    "assignmentHistory": [
+      {
+        "assignedUser": "Emily Johnson",
+        "assignedAt": "2024-01-14T10:35:00Z",
+        "assignedBy": "System",
+        "reason": "Initial assignment"
       }
     ]
   }
