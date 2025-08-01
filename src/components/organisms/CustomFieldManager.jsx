@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import { customFieldService } from "@/services/api/customFieldService";
 import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Card from "@/components/atoms/Card";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
-import FormField from "@/components/molecules/FormField";
 import Modal from "@/components/molecules/Modal";
+import FormField from "@/components/molecules/FormField";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import { customFieldService } from "@/services/api/customFieldService";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import Card from "@/components/atoms/Card";
 
 const CustomFieldManager = () => {
   const [customFields, setCustomFields] = useState([]);
@@ -240,67 +240,40 @@ const CustomFieldManager = () => {
   );
 };
 
+const generateFieldName = (label) => {
+    return label
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 50);
+  };
+
 const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    type: "text",
-    label: "",
-    required: false,
-    options: []
+    label: field?.label || "",
+    name: field?.name || "",
+    type: field?.type || "text",
+    required: field?.required || false,
+    placeholder: field?.placeholder || "",
+    options: field?.options || []
   });
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [optionInput, setOptionInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [newOption, setNewOption] = useState({ label: "", value: "" });
 
-  useEffect(() => {
-    if (field) {
-      setFormData({
-        name: field.name || "",
-        type: field.type || "text",
-        label: field.label || "",
-        required: field.required || false,
-        options: field.options || []
-      });
-    }
-  }, [field]);
+  const fieldTypes = [
+    { value: "text", label: "Text" },
+    { value: "number", label: "Number" },
+    { value: "dropdown", label: "Dropdown" },
+    { value: "date", label: "Date" }
+  ];
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
-
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
-
-    // Clear options when type changes away from dropdown
-    if (name === "type" && value !== "dropdown") {
-      setFormData(prev => ({ ...prev, options: [] }));
-    }
-  };
-
-  const addOption = () => {
-    if (!optionInput.trim()) return;
-    
-    const newOption = {
-      value: optionInput.toLowerCase().replace(/\s+/g, '-'),
-      label: optionInput.trim()
-    };
-    
-    setFormData(prev => ({
-      ...prev,
-      options: [...prev.options, newOption]
-    }));
-    setOptionInput("");
-  };
-
-  const removeOption = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      options: prev.options.filter((_, i) => i !== index)
-    }));
+  const generateFieldName = (label) => {
+    return label
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 50);
   };
 
   const validateForm = () => {
@@ -312,14 +285,65 @@ const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
 
     if (!formData.name.trim()) {
       newErrors.name = "Field name is required";
+    } else if (!/^[a-z0-9_]+$/.test(formData.name)) {
+      newErrors.name = "Field name can only contain lowercase letters, numbers, and underscores";
     }
 
     if (formData.type === "dropdown" && formData.options.length === 0) {
       newErrors.options = "At least one option is required for dropdown fields";
     }
 
+    if (formData.type === "dropdown" && formData.options.length > 0) {
+      const duplicateLabels = formData.options.filter((option, index, arr) => 
+        arr.findIndex(o => o.label.toLowerCase() === option.label.toLowerCase()) !== index
+      );
+      if (duplicateLabels.length > 0) {
+        newErrors.options = "Duplicate option labels are not allowed";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+
+    if (name === "label" && !field) {
+      const generatedName = generateFieldName(value);
+      setFormData(prev => ({ ...prev, name: generatedName }));
+    }
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleAddOption = () => {
+    if (!newOption.label.trim()) return;
+
+    const option = {
+      label: newOption.label.trim(),
+      value: newOption.value.trim() || newOption.label.toLowerCase().replace(/\s+/g, '_')
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      options: [...prev.options, option]
+    }));
+
+    setNewOption({ label: "", value: "" });
+  };
+
+  const handleRemoveOption = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -329,20 +353,13 @@ const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      const fieldData = {
-        ...formData,
-        name: formData.name.trim()
-      };
-
       if (field) {
-        await customFieldService.update(field.Id, fieldData);
+        await customFieldService.update(field.Id, formData);
       } else {
-        await customFieldService.create(fieldData);
+        await customFieldService.create(formData);
       }
-      
       onSuccess();
     } catch (err) {
       toast.error(field ? "Failed to update custom field" : "Failed to create custom field");
@@ -353,54 +370,84 @@ const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          label="Field Label"
-          name="label"
-          value={formData.label}
-          onChange={handleChange}
-          placeholder="Enter field label"
-          required
-          error={errors.label}
-        />
+      <FormField
+        label="Field Label"
+        name="label"
+        value={formData.label}
+        onChange={handleChange}
+        placeholder="Enter field label (e.g., Company Size)"
+        required
+        error={errors.label}
+      />
 
+      <div className="space-y-2">
         <FormField
           label="Field Name"
           name="name"
           value={formData.name}
           onChange={handleChange}
-          placeholder="Enter field name (used internally)"
+          placeholder="Auto-generated from label or enter custom name"
           required
           error={errors.name}
         />
-
-        <FormField
-          type="select"
-          label="Field Type"
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          options={[
-            { value: "text", name: "Text" },
-            { value: "number", name: "Number" },
-            { value: "dropdown", name: "Dropdown" },
-            { value: "date", name: "Date" }
-          ]}
-          required
-        />
-
-        <div className="flex items-center">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="required"
-              checked={formData.required}
-              onChange={handleChange}
-              className="rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span className="text-sm font-medium text-gray-700">Required field</span>
-          </label>
+        <div className="flex items-center space-x-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (formData.label.trim()) {
+                const generatedName = generateFieldName(formData.label);
+                setFormData(prev => ({ ...prev, name: generatedName }));
+                if (errors.name) {
+                  setErrors(prev => ({ ...prev, name: "" }));
+                }
+              }
+            }}
+            disabled={!formData.label.trim()}
+            className="text-xs text-primary hover:text-primary/80"
+          >
+            <ApperIcon name="RefreshCw" size={12} />
+            Auto-generate
+          </Button>
+          <span className="text-xs text-gray-500">
+            Used internally for data storage
+          </span>
         </div>
+      </div>
+
+      <FormField
+        type="select"
+        label="Field Type"
+        name="type"
+        value={formData.type}
+        onChange={handleChange}
+        options={fieldTypes}
+        required
+        error={errors.type}
+      />
+
+      <FormField
+        label="Placeholder Text"
+        name="placeholder"
+        value={formData.placeholder}
+        onChange={handleChange}
+        placeholder="Optional placeholder text"
+        error={errors.placeholder}
+      />
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="required"
+          name="required"
+          checked={formData.required}
+          onChange={handleChange}
+          className="rounded border-gray-300"
+        />
+        <label htmlFor="required" className="text-sm font-medium text-gray-700">
+          Required field
+        </label>
       </div>
 
       {formData.type === "dropdown" && (
@@ -409,45 +456,43 @@ const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Dropdown Options
             </label>
-            <div className="flex space-x-2">
+            
+            <div className="flex space-x-2 mb-4">
               <Input
-                value={optionInput}
-                onChange={(e) => setOptionInput(e.target.value)}
-                placeholder="Enter option label"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addOption();
-                  }
-                }}
+                placeholder="Option label"
+                value={newOption.label}
+                onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
+                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddOption())}
+              />
+              <Input
+                placeholder="Option value (optional)"
+                value={newOption.value}
+                onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
+                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddOption())}
               />
               <Button
                 type="button"
-                onClick={addOption}
-                disabled={!optionInput.trim()}
+                onClick={handleAddOption}
+                disabled={!newOption.label.trim()}
+                className="px-4"
               >
-                Add
+                <ApperIcon name="Plus" size={16} />
               </Button>
             </div>
-            {errors.options && (
-              <p className="mt-1 text-sm text-red-600">{errors.options}</p>
-            )}
-          </div>
 
-          {formData.options.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Options
-              </label>
+            {formData.options.length > 0 && (
               <div className="space-y-2">
                 {formData.options.map((option, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded">
-                    <span>{option.label}</span>
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-sm text-gray-500 ml-2">({option.value})</span>
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeOption(index)}
+                      onClick={() => handleRemoveOption(index)}
                       className="text-red-600 hover:text-red-800"
                     >
                       <ApperIcon name="X" size={16} />
@@ -455,25 +500,29 @@ const CustomFieldForm = ({ field, onSuccess, onCancel }) => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+
+            {errors.options && (
+              <p className="text-sm text-red-600 mt-1">{errors.options}</p>
+            )}
+          </div>
         </div>
       )}
 
-      <div className="flex justify-end space-x-4 pt-6 border-t">
+      <div className="flex justify-end space-x-3 pt-6 border-t">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           onClick={onCancel}
         >
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={loading}
+          loading={loading}
           className="bg-gradient-to-r from-primary to-secondary text-white"
         >
-          {loading ? "Saving..." : field ? "Update Field" : "Create Field"}
+          {field ? "Update Field" : "Create Field"}
         </Button>
       </div>
     </form>
