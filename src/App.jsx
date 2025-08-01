@@ -12,17 +12,15 @@ import Leads from "@/components/pages/Leads";
 
 function App() {
   return (
-    <BrowserRouter>
+<BrowserRouter>
       <Layout>
-<Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="leads" element={<Leads />} />
-            <Route path="pipeline" element={<Pipeline />} />
-            <Route path="workflows" element={<WorkflowAutomation />} />
-            <Route path="tasks" element={<Tasks />} />
-            <Route path="communications" element={<Communications />} />
-          </Route>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="pipeline" element={<Pipeline />} />
+          <Route path="workflows" element={<WorkflowAutomation />} />
+          <Route path="tasks" element={<Tasks />} />
+          <Route path="communications" element={<Communications />} />
         </Routes>
       </Layout>
       <ToastContainer
