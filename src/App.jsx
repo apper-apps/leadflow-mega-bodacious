@@ -5,6 +5,7 @@ import Dashboard from "@/components/pages/Dashboard";
 import Leads from "@/components/pages/Leads";
 import Pipeline from "@/components/pages/Pipeline";
 import Tasks from "@/components/pages/Tasks";
+import Communications from "@/components/pages/Communications";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
             <Route path="leads" element={<Leads />} />
 <Route path="pipeline" element={<Pipeline />} />
             <Route path="tasks" element={<Tasks />} />
-            <Route path="communications" element={<div className="p-6"><h1 className="text-2xl font-bold">Communications Center - Coming Soon</h1></div>} />
+<Route path="communications" element={<Communications />} />
           </Route>
         </Routes>
         
