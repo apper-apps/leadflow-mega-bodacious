@@ -240,125 +240,277 @@ const CsvImportModal = ({ isOpen, onClose, onImportSuccess }) => {
     </div>
   );
 
-  const renderMappingStep = () => (
-    <div>
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-2">Map CSV Columns</h3>
-        <p className="text-gray-600">
-          Map your CSV columns to lead fields. Preview shows first 3 rows.
-        </p>
-      </div>
+const renderMappingStep = () => {
+    const mappedColumns = Object.values(columnMapping).filter(Boolean).length;
+    const requiredFieldsMapped = leadFields
+      .filter(field => field.required)
+      .every(field => Object.values(columnMapping).includes(field.key));
 
-      <div className="space-y-4 mb-6">
-        {headers.map((header, index) => (
-          <div key={index} className="flex items-center space-x-4">
-            <div className="w-32 text-sm font-medium truncate" title={header}>
-              {header}
-            </div>
-            <div className="flex-1">
-              <select
-                value={columnMapping[index] || ''}
-                onChange={(e) => handleColumnMapping(index, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="">-- Skip Column --</option>
-                {leadFields.map(field => (
-                  <option key={field.key} value={field.key}>
-                    {field.label} {field.required && '*'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-48 text-sm text-gray-600 truncate">
-              {csvData[0] && csvData[0][index]}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {csvData.length > 0 && (
+    return (
+      <div>
         <div className="mb-6">
-          <h4 className="font-medium mb-2">Preview ({csvData.length} rows)</h4>
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {headers.map((header, index) => (
-                    <th key={index} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {csvData.slice(0, 3).map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} className="px-3 py-2 text-sm text-gray-900 max-w-32 truncate">
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h3 className="text-lg font-medium mb-2">Map CSV Columns & Preview Data</h3>
+          <p className="text-gray-600">
+            Map your CSV columns to lead fields and preview how your data will be imported.
+          </p>
+          
+          {/* Import Summary */}
+          <div className="mt-4 flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>{csvData.length} rows to import</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${mappedColumns > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span>{mappedColumns} columns mapped</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${requiredFieldsMapped ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+              <span>Required fields {requiredFieldsMapped ? 'complete' : 'incomplete'}</span>
+            </div>
           </div>
         </div>
-      )}
 
-      {errors.length > 0 && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <h4 className="font-medium text-red-800 mb-2">Validation Errors:</h4>
-          <ul className="text-sm text-red-700 space-y-1">
-            {errors.slice(0, 10).map((error, index) => (
-              <li key={index}>• {error}</li>
-            ))}
-            {errors.length > 10 && (
-              <li className="text-red-600">... and {errors.length - 10} more errors</li>
-            )}
-          </ul>
+        <div className="space-y-4 mb-6">
+          {headers.map((header, index) => {
+            const mappedField = columnMapping[index];
+            const fieldInfo = leadFields.find(f => f.key === mappedField);
+            
+            return (
+              <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                <div className="w-32 text-sm font-medium truncate" title={header}>
+                  {header}
+                </div>
+                <div className="flex-1">
+                  <select
+                    value={columnMapping[index] || ''}
+                    onChange={(e) => handleColumnMapping(index, e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  >
+                    <option value="">-- Skip Column --</option>
+                    {leadFields.map(field => (
+                      <option key={field.key} value={field.key}>
+                        {field.label} {field.required && '*'}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldInfo && (
+                    <div className="mt-1 flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        fieldInfo.required ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {fieldInfo.required ? 'Required' : 'Optional'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="w-48 text-sm text-gray-600">
+                  <div className="truncate font-medium">Sample:</div>
+                  <div className="truncate text-gray-500">
+                    {csvData[0] && csvData[0][index] ? csvData[0][index] : 'No data'}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
 
-      <div className="flex justify-between pt-4 border-t">
-        <Button
-          variant="outline"
-          onClick={() => setStep(1)}
-        >
-          Back
-        </Button>
-        <Button
-          onClick={handleImport}
-          disabled={errors.length > 0}
-          className="flex items-center space-x-2"
-        >
-          <ApperIcon name="Upload" size={16} />
-          <span>Import {csvData.length} Leads</span>
-        </Button>
-      </div>
-    </div>
-  );
+        {csvData.length > 0 && (
+          <div className="mb-6">
+            <h4 className="font-medium mb-3 flex items-center space-x-2">
+              <ApperIcon name="Eye" size={16} />
+              <span>Data Preview - First 3 Rows</span>
+            </h4>
+            
+            {/* Mapped Fields Preview */}
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h5 className="text-sm font-medium text-blue-800 mb-2">How your data will be imported:</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(columnMapping).map(([columnIndex, fieldKey]) => {
+                  const field = leadFields.find(f => f.key === fieldKey);
+                  const sampleValue = csvData[0] && csvData[0][columnIndex];
+                  
+                  return (
+                    <div key={columnIndex} className="text-xs">
+                      <span className="font-medium text-blue-900">{field?.label}:</span>
+                      <span className="ml-1 text-blue-700">
+                        {sampleValue || 'No sample data'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-  const renderImportStep = () => (
-    <div className="text-center py-8">
-      <Loading className="mb-4" />
-      <h3 className="text-lg font-medium mb-2">Importing Leads</h3>
-      <p className="text-gray-600 mb-6">
-        Please wait while we import your leads...
-      </p>
-      
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-        <div 
-          className="bg-primary h-2 rounded-full transition-all duration-300"
-          style={{ width: `${importProgress}%` }}
-        />
+            {/* Raw Data Table */}
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {headers.map((header, index) => {
+                      const mappedField = columnMapping[index];
+                      const fieldInfo = leadFields.find(f => f.key === mappedField);
+                      
+                      return (
+                        <th key={index} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <div className="flex flex-col">
+                            <span>{header}</span>
+                            {mappedField && (
+                              <span className={`mt-1 text-xs font-normal ${
+                                fieldInfo?.required ? 'text-red-600' : 'text-blue-600'
+                              }`}>
+                                → {fieldInfo?.label}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {csvData.slice(0, 3).map((row, rowIndex) => (
+                    <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      {row.map((cell, cellIndex) => {
+                        const mappedField = columnMapping[cellIndex];
+                        
+                        return (
+                          <td key={cellIndex} className={`px-3 py-2 text-sm max-w-32 truncate ${
+                            mappedField ? 'bg-blue-50 text-blue-900' : 'text-gray-900'
+                          }`} title={cell}>
+                            {cell || <span className="text-gray-400 italic">empty</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {errors.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h4 className="font-medium text-red-800 mb-2 flex items-center space-x-2">
+              <ApperIcon name="AlertTriangle" size={16} />
+              <span>Validation Errors ({errors.length}):</span>
+            </h4>
+            <ul className="text-sm text-red-700 space-y-1 max-h-32 overflow-y-auto">
+              {errors.slice(0, 10).map((error, index) => (
+                <li key={index} className="flex items-start space-x-2">
+                  <span className="text-red-500 mt-0.5">•</span>
+                  <span>{error}</span>
+                </li>
+              ))}
+              {errors.length > 10 && (
+                <li className="text-red-600 font-medium">... and {errors.length - 10} more errors</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        <div className="flex justify-between pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={() => setStep(1)}
+            className="flex items-center space-x-2"
+          >
+            <ApperIcon name="ArrowLeft" size={16} />
+            <span>Back to Upload</span>
+          </Button>
+          <Button
+            onClick={handleImport}
+            disabled={errors.length > 0 || !requiredFieldsMapped}
+            className="flex items-center space-x-2"
+          >
+            <ApperIcon name="Upload" size={16} />
+            <span>Import {csvData.length} Leads</span>
+          </Button>
+        </div>
       </div>
-      
-      <div className="text-sm text-gray-600">
-        {importProgress}% Complete
+    );
+  };
+
+const renderImportStep = () => {
+    const processedLeads = Math.floor((importProgress / 100) * csvData.length);
+    
+    return (
+      <div className="py-8">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <Loading className="w-12 h-12" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-bold text-primary">{importProgress}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <h3 className="text-lg font-medium mb-2">Importing Your Leads</h3>
+          <p className="text-gray-600 mb-2">
+            Processing your CSV data and creating lead records...
+          </p>
+          <p className="text-sm text-gray-500">
+            {processedLeads} of {csvData.length} leads processed
+          </p>
+        </div>
+        
+        {/* Enhanced Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Progress</span>
+            <span>{importProgress}% Complete</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-2 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-primary to-secondary h-3 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${importProgress}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>0</span>
+            <span>{csvData.length} leads</span>
+          </div>
+        </div>
+
+        {/* Import Status */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-6 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${importProgress > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+              <span className={importProgress > 0 ? 'text-blue-600' : 'text-gray-500'}>
+                Processing Data
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${importProgress > 25 ? 'bg-yellow-500' : 'bg-gray-300'}`}></div>
+              <span className={importProgress > 25 ? 'text-yellow-600' : 'text-gray-500'}>
+                Validating Records
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${importProgress > 75 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className={importProgress > 75 ? 'text-green-600' : 'text-gray-500'}>
+                Creating Leads
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <ApperIcon name="Info" size={16} className="text-yellow-600 mt-0.5" />
+            <div className="text-sm">
+              <p className="text-yellow-800 font-medium">Please don't close this window</p>
+              <p className="text-yellow-700">The import process is running and will complete shortly.</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Modal
