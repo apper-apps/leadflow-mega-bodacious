@@ -1,0 +1,122 @@
+[
+  {
+    "Id": 1,
+    "name": "John Smith",
+    "email": "john.smith@techcorp.com",
+    "phone": "+1-555-0123",
+    "company": "TechCorp Solutions",
+    "status": "New",
+    "source": "Website",
+    "value": 25000,
+    "createdAt": "2024-01-15T10:30:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "Id": 2,
+    "name": "Sarah Johnson",
+    "email": "sarah.j@innovatetech.io",
+    "phone": "+1-555-0234",
+    "company": "InnovateTech",
+    "status": "Contacted",
+    "source": "Referral",
+    "value": 45000,
+    "createdAt": "2024-01-14T14:20:00Z",
+    "updatedAt": "2024-01-16T09:15:00Z"
+  },
+  {
+    "Id": 3,
+    "name": "Michael Chen",
+    "email": "m.chen@globalventures.com",
+    "phone": "+1-555-0345",
+    "company": "Global Ventures",
+    "status": "Qualified",
+    "source": "LinkedIn",
+    "value": 75000,
+    "createdAt": "2024-01-12T16:45:00Z",
+    "updatedAt": "2024-01-17T11:30:00Z"
+  },
+  {
+    "Id": 4,
+    "name": "Emily Davis",
+    "email": "emily.davis@startupinc.com",
+    "phone": "+1-555-0456",
+    "company": "Startup Inc",
+    "status": "Proposal",
+    "source": "Cold Call",
+    "value": 32000,
+    "createdAt": "2024-01-10T09:00:00Z",
+    "updatedAt": "2024-01-18T15:20:00Z"
+  },
+  {
+    "Id": 5,
+    "name": "David Wilson",
+    "email": "d.wilson@megacorp.biz",
+    "phone": "+1-555-0567",
+    "company": "MegaCorp",
+    "status": "Won",
+    "source": "Trade Show",
+    "value": 120000,
+    "createdAt": "2024-01-08T13:15:00Z",
+    "updatedAt": "2024-01-19T10:45:00Z"
+  },
+  {
+    "Id": 6,
+    "name": "Lisa Anderson",
+    "email": "l.anderson@digitalfirm.net",
+    "phone": "+1-555-0678",
+    "company": "Digital Firm",
+    "status": "Lost",
+    "source": "Website",
+    "value": 18000,
+    "createdAt": "2024-01-05T11:30:00Z",
+    "updatedAt": "2024-01-20T14:00:00Z"
+  },
+  {
+    "Id": 7,
+    "name": "Robert Taylor",
+    "email": "r.taylor@businesssolutions.org",
+    "phone": "+1-555-0789",
+    "company": "Business Solutions",
+    "status": "New",
+    "source": "Referral",
+    "value": 28000,
+    "createdAt": "2024-01-20T08:45:00Z",
+    "updatedAt": "2024-01-20T08:45:00Z"
+  },
+  {
+    "Id": 8,
+    "name": "Jennifer White",
+    "email": "j.white@techstartup.co",
+    "phone": "+1-555-0890",
+    "company": "Tech Startup Co",
+    "status": "Contacted",
+    "source": "LinkedIn",
+    "value": 55000,
+    "createdAt": "2024-01-18T12:20:00Z",
+    "updatedAt": "2024-01-21T16:30:00Z"
+  },
+  {
+    "Id": 9,
+    "name": "Thomas Brown",
+    "email": "t.brown@enterprisegroup.com",
+    "phone": "+1-555-0901",
+    "company": "Enterprise Group",
+    "status": "Qualified",
+    "source": "Cold Call",
+    "value": 95000,
+    "createdAt": "2024-01-16T15:10:00Z",
+    "updatedAt": "2024-01-22T09:25:00Z"
+  },
+  {
+    "Id": 10,
+    "name": "Amanda Garcia",
+    "email": "a.garcia@growthcompany.io",
+    "phone": "+1-555-1012",
+    "company": "Growth Company",
+    "status": "Proposal",
+    "source": "Website",
+    "value": 42000,
+    "createdAt": "2024-01-14T10:35:00Z",
+    "updatedAt": "2024-01-23T13:15:00Z"
+  }
+]

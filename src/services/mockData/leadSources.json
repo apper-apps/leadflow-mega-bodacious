@@ -1,0 +1,42 @@
+[
+  {
+    "Id": 1,
+    "name": "Website",
+    "value": "Website"
+  },
+  {
+    "Id": 2,
+    "name": "LinkedIn",
+    "value": "LinkedIn"
+  },
+  {
+    "Id": 3,
+    "name": "Referral",
+    "value": "Referral"
+  },
+  {
+    "Id": 4,
+    "name": "Cold Call",
+    "value": "Cold Call"
+  },
+  {
+    "Id": 5,
+    "name": "Trade Show",
+    "value": "Trade Show"
+  },
+  {
+    "Id": 6,
+    "name": "Email Campaign",
+    "value": "Email Campaign"
+  },
+  {
+    "Id": 7,
+    "name": "Social Media",
+    "value": "Social Media"
+  },
+  {
+    "Id": 8,
+    "name": "Partner",
+    "value": "Partner"
+  }
+]
