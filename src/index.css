@@ -59,6 +59,23 @@
   @apply bg-gray-300 rounded-full;
 }
 
-::-webkit-scrollbar-thumb:hover {
+:::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400;
+}
+
+/* Lead Score Colors */
+.lead-score-high {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.lead-score-medium {
+  @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+}
+
+.lead-score-low {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+.lead-score-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
 }

@@ -85,7 +85,7 @@ const uniqueUsers = useMemo(() => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
+if (sortConfig.key === "value" || sortConfig.key === "winProbability" || sortConfig.key === "score") {
           aValue = Number(aValue);
           bValue = Number(bValue);
         } else if (sortConfig.key === "createdAt" || sortConfig.key === "closeDate") {
@@ -298,6 +298,7 @@ const uniqueUsers = useMemo(() => {
                     { key: "source", label: "Source" },
                     { key: "assignedUser", label: "Assigned To" },
                     { key: "value", label: "Value" },
+                    { key: "score", label: "Lead Score" },
                     { key: "closeDate", label: "Close Date" },
                     { key: "winProbability", label: "Win %" },
                     { key: "createdAt", label: "Created" },
@@ -351,8 +352,22 @@ const uniqueUsers = useMemo(() => {
 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {lead.assignedUser || 'Unassigned'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ${lead.value.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div 
+                          className={`
+                            inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            ${lead.score >= 70 ? 'bg-green-100 text-green-800' : 
+                              lead.score >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+                              'bg-red-100 text-red-800'}
+                          `}
+                        >
+                          {lead.score}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {format(new Date(lead.closeDate), "MMM dd, yyyy")}

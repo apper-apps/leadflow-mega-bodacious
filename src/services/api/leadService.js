@@ -4,10 +4,83 @@ let leads = [...leadsData];
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Lead scoring configuration
+const scoringConfig = {
+  source: {
+    'Website': 10,
+    'Referral': 15,
+    'Social Media': 5,
+    'Email Campaign': 8,
+    'Trade Show': 12,
+    'Cold Call': 3,
+    'Partner': 20,
+    'Direct': 7
+  },
+  companySize: {
+    'startup': 5,
+    'small': 10,
+    'medium': 15,
+    'large': 20,
+    'enterprise': 25
+  },
+  engagement: {
+    low: 5,
+    medium: 10,
+    high: 20
+  }
+};
+
+// Calculate lead score based on multiple criteria
+const calculateLeadScore = (lead) => {
+  let score = 0;
+  
+  // Source score
+  score += scoringConfig.source[lead.source] || 0;
+  
+  // Company size score (derive from company name or use default)
+  const companySize = getCompanySize(lead.company, lead.value);
+  score += scoringConfig.companySize[companySize] || 0;
+  
+  // Engagement score (derive from win probability and recent activity)
+  const engagementLevel = getEngagementLevel(lead.winProbability, lead.value);
+  score += scoringConfig.engagement[engagementLevel] || 0;
+  
+  // Bonus for high value deals
+  if (lead.value > 50000) score += 10;
+  if (lead.value > 100000) score += 15;
+  
+  return Math.min(score, 100); // Cap at 100
+};
+
+// Helper function to determine company size
+const getCompanySize = (companyName, dealValue) => {
+  if (dealValue > 500000) return 'enterprise';
+  if (dealValue > 100000) return 'large';
+  if (dealValue > 50000) return 'medium';
+  if (dealValue > 10000) return 'small';
+  return 'startup';
+};
+
+// Helper function to determine engagement level
+const getEngagementLevel = (winProbability, dealValue) => {
+  const score = (winProbability * 0.7) + (Math.min(dealValue / 100000, 1) * 30);
+  if (score > 70) return 'high';
+  if (score > 40) return 'medium';
+  return 'low';
+};
+
+// Add scores to leads when they're retrieved
+const addLeadScores = (leadsArray) => {
+  return leadsArray.map(lead => ({
+    ...lead,
+    score: calculateLeadScore(lead)
+  }));
+};
+
 export const leadService = {
-  async getAll() {
+async getAll() {
     await delay(300);
-    return [...leads];
+    return addLeadScores([...leads]);
   },
 
   async getById(id) {
