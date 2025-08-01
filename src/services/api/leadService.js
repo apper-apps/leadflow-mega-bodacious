@@ -220,7 +220,7 @@ async getByStatus(status) {
     return { ...newNote };
   },
 
-  async updateNote(leadId, noteId, noteContent) {
+async updateNote(leadId, noteId, noteContent) {
     await delay(200);
     const leadIndex = leads.findIndex(lead => lead.Id === parseInt(leadId));
     if (leadIndex === -1) {
@@ -241,7 +241,6 @@ async getByStatus(status) {
       content: noteContent,
       updatedAt: new Date().toISOString()
     };
-
     leads[leadIndex].updatedAt = new Date().toISOString();
 
     return { ...leads[leadIndex].notes[noteIndex] };
@@ -258,15 +257,115 @@ async getByStatus(status) {
       return;
     }
 
-    const noteIndex = leads[leadIndex].notes.findIndex(note => note.id === parseInt(noteId));
-    if (noteIndex === -1) {
-      throw new Error("Note not found");
-    }
-
-    const deletedNote = leads[leadIndex].notes.splice(noteIndex, 1)[0];
+    leads[leadIndex].notes = leads[leadIndex].notes.filter(note => note.id !== parseInt(noteId));
     leads[leadIndex].updatedAt = new Date().toISOString();
+  },
 
-    return { ...deletedNote };
+  // Bulk operations
+  async bulkUpdateStatus(leadIds, status) {
+    await delay(300);
+    const updatedLeads = [];
+    
+    for (const id of leadIds) {
+      const index = leads.findIndex(lead => lead.Id === parseInt(id));
+      if (index !== -1) {
+        const statusChange = {
+          status,
+          changedAt: new Date().toISOString(),
+          changedBy: "Sales Rep"
+        };
+        
+        if (!leads[index].statusHistory) {
+          leads[index].statusHistory = [];
+        }
+        leads[index].statusHistory.push(statusChange);
+        
+        leads[index] = {
+          ...leads[index],
+          status,
+          updatedAt: new Date().toISOString()
+        };
+        
+        updatedLeads.push({ ...leads[index] });
+      }
+    }
+    
+    return updatedLeads;
+  },
+
+  async bulkAssignUser(leadIds, assignedUser) {
+    await delay(300);
+    const updatedLeads = [];
+    
+    for (const id of leadIds) {
+      const index = leads.findIndex(lead => lead.Id === parseInt(id));
+      if (index !== -1) {
+        leads[index] = {
+          ...leads[index],
+          assignedUser,
+          updatedAt: new Date().toISOString()
+        };
+        
+        updatedLeads.push({ ...leads[index] });
+      }
+    }
+    
+    return updatedLeads;
+  },
+
+  async bulkUpdateSource(leadIds, source) {
+    await delay(300);
+    const updatedLeads = [];
+    
+    for (const id of leadIds) {
+      const index = leads.findIndex(lead => lead.Id === parseInt(id));
+      if (index !== -1) {
+        leads[index] = {
+          ...leads[index],
+          source,
+          updatedAt: new Date().toISOString()
+        };
+        
+        updatedLeads.push({ ...leads[index] });
+      }
+    }
+    
+    return updatedLeads;
+  },
+
+  async bulkDelete(leadIds) {
+    await delay(300);
+    const deletedIds = [];
+    
+    for (const id of leadIds) {
+      const index = leads.findIndex(lead => lead.Id === parseInt(id));
+      if (index !== -1) {
+        leads.splice(index, 1);
+        deletedIds.push(parseInt(id));
+      }
+    }
+    
+    return deletedIds;
+  },
+
+  async bulkUpdateStage(leadIds, stage) {
+    await delay(300);
+    const updatedLeads = [];
+    
+    for (const id of leadIds) {
+      const index = leads.findIndex(lead => lead.Id === parseInt(id));
+      if (index !== -1) {
+        leads[index] = {
+          ...leads[index],
+          stage,
+          updatedAt: new Date().toISOString()
+        };
+        
+        updatedLeads.push({ ...leads[index] });
+      }
+    }
+    
+return updatedLeads;
   },
 
 async getStatusHistory(id) {
@@ -327,8 +426,9 @@ async getStatusHistory(id) {
       if (lead.assignedUser) users.add(lead.assignedUser);
     });
     return Array.from(users).sort();
-  },
-async getFilteredLeads(filterParams) {
+},
+
+  async getFilteredLeads(filterParams) {
     await delay(200);
     let filtered = [...leads];
 

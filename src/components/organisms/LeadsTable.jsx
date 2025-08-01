@@ -22,7 +22,10 @@ const LeadsTable = ({
   onDeleteLead,
   onLeadClick 
 }) => {
-const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLeads, setSelectedLeads] = useState(new Set());
+  const [isSelectAllChecked, setIsSelectAllChecked] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -152,8 +155,102 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability" || sortCon
     return <Error message={error} onRetry={onRetry} />;
   }
 
+// Handle selection changes
+  const handleSelectLead = (leadId, isChecked) => {
+    const newSelectedLeads = new Set(selectedLeads);
+    if (isChecked) {
+      newSelectedLeads.add(leadId);
+    } else {
+      newSelectedLeads.delete(leadId);
+    }
+    setSelectedLeads(newSelectedLeads);
+    setIsSelectAllChecked(newSelectedLeads.size === filteredAndSortedLeads.length && filteredAndSortedLeads.length > 0);
+    setShowBulkActions(newSelectedLeads.size > 0);
+  };
+
+  const handleSelectAll = (isChecked) => {
+    if (isChecked) {
+      const allIds = new Set(filteredAndSortedLeads.map(lead => lead.Id));
+      setSelectedLeads(allIds);
+      setShowBulkActions(true);
+    } else {
+      setSelectedLeads(new Set());
+      setShowBulkActions(false);
+    }
+    setIsSelectAllChecked(isChecked);
+  };
+
   return (
-<div className="space-y-6">
+    <div className="space-y-6">
+      {/* Bulk Actions Bar */}
+      {showBulkActions && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-primary/10 border border-primary/20 rounded-lg p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-primary">
+                {selectedLeads.size} leads selected
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedLeads(new Set());
+                  setShowBulkActions(false);
+                  setIsSelectAllChecked(false);
+                }}
+              >
+                Clear Selection
+              </Button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Select
+                placeholder="Change Status"
+                onChange={(value) => onBulkStatusChange?.(Array.from(selectedLeads), value)}
+                className="min-w-32"
+              >
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Proposal">Proposal</option>
+                <option value="Won">Won</option>
+                <option value="Lost">Lost</option>
+              </Select>
+              <Select
+                placeholder="Assign To"
+                onChange={(value) => onBulkAssignUser?.(Array.from(selectedLeads), value)}
+                className="min-w-32"
+              >
+                {Array.from(uniqueUsers).map(user => (
+                  <option key={user} value={user}>{user}</option>
+                ))}
+              </Select>
+              <Select
+                placeholder="Update Source"
+                onChange={(value) => onBulkUpdateSource?.(Array.from(selectedLeads), value)}
+                className="min-w-32"
+              >
+                {leadSources.map(source => (
+                  <option key={source.Id} value={source.name}>{source.name}</option>
+                ))}
+              </Select>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onBulkDelete?.(Array.from(selectedLeads))}
+                className="flex items-center space-x-1"
+              >
+                <ApperIcon name="Trash2" size={14} />
+                <span>Delete</span>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
           <SearchBar
@@ -287,9 +384,17 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability" || sortCon
         <Card padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+<thead className="bg-gray-50 border-b">
                 <tr>
-{[
+                  <th className="px-6 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={isSelectAllChecked}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    />
+                  </th>
+                  {[
                     { key: "name", label: "Name" },
                     { key: "email", label: "Email" },
                     { key: "phone", label: "Phone" },
@@ -329,8 +434,23 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability" || sortCon
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => onLeadClick(lead)}
+onClick={(e) => {
+                      if (e.target.type !== 'checkbox') {
+                        onLeadClick(lead);
+                      }
+                    }}
                   >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedLeads.has(lead.Id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleSelectLead(lead.Id, e.target.checked);
+                        }}
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{lead.name}</div>
                     </td>
