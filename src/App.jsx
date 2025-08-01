@@ -4,16 +4,18 @@ import Layout from "@/components/organisms/Layout";
 import Dashboard from "@/components/pages/Dashboard";
 import Leads from "@/components/pages/Leads";
 import Pipeline from "@/components/pages/Pipeline";
+import Tasks from "@/components/pages/Tasks";
 
 function App() {
   return (
     <BrowserRouter>
       <div className="App">
-        <Routes>
+<Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="leads" element={<Leads />} />
             <Route path="pipeline" element={<Pipeline />} />
+            <Route path="tasks" element={<Tasks />} />
           </Route>
         </Routes>
         

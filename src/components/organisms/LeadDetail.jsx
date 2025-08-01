@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import { toast } from 'react-toastify';
 import ApperIcon from '@/components/ApperIcon';
 import Button from '@/components/atoms/Button';
@@ -9,22 +9,25 @@ import Input from '@/components/atoms/Input';
 import Select from '@/components/atoms/Select';
 import FormField from '@/components/molecules/FormField';
 import StatusBadge from '@/components/molecules/StatusBadge';
+import TaskModal from '@/components/organisms/TaskModal';
 import { leadService } from '@/services/api/leadService';
 import { leadSourceService } from '@/services/api/leadSourceService';
-
+import { taskService } from '@/services/api/taskService';
 const LeadDetail = ({ lead, onUpdate, onClose }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({});
   const [newNote, setNewNote] = useState('');
   const [editingNote, setEditingNote] = useState(null);
   const [editNoteContent, setEditNoteContent] = useState('');
   const [sources, setSources] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [showTaskModal, setShowTaskModal] = useState(false);
   const [statusOptions] = useState([
     'New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'
   ]);
 
-  useEffect(() => {
+useEffect(() => {
     setFormData({
       name: lead.name || '',
       email: lead.email || '',
@@ -37,14 +40,24 @@ const LeadDetail = ({ lead, onUpdate, onClose }) => {
       value: lead.value || 0
     });
     loadSources();
+    loadTasks();
   }, [lead]);
 
-  const loadSources = async () => {
+const loadSources = async () => {
     try {
       const sourcesData = await leadSourceService.getAll();
       setSources(sourcesData);
     } catch (error) {
       console.error('Failed to load sources:', error);
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const tasksData = await taskService.getByLeadId(lead.Id);
+      setTasks(tasksData);
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
     }
   };
 
@@ -85,7 +98,7 @@ const LeadDetail = ({ lead, onUpdate, onClose }) => {
     setIsEditing(false);
   };
 
-  const handleAddNote = async () => {
+const handleAddNote = async () => {
     if (!newNote.trim()) return;
 
     setLoading(true);
@@ -141,6 +154,55 @@ const LeadDetail = ({ lead, onUpdate, onClose }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateTask = () => {
+    setShowTaskModal(true);
+  };
+
+  const handleTaskCreated = () => {
+    loadTasks();
+    toast.success('Task created successfully');
+  };
+
+  const handleMarkTaskComplete = async (taskId) => {
+    try {
+      await taskService.markComplete(taskId);
+      loadTasks();
+      toast.success('Task marked as complete');
+    } catch (error) {
+      toast.error('Failed to complete task');
+      console.error('Complete task error:', error);
+    }
+  };
+
+  const getTaskStatusColor = (task) => {
+    if (task.status === 'completed') return 'border-l-green-500 bg-green-50';
+    if (task.status === 'overdue' || (task.status === 'pending' && isPast(new Date(task.dueDate)) && !isToday(new Date(task.dueDate)))) {
+      return 'border-l-red-500 bg-red-50';
+    }
+    if (isToday(new Date(task.dueDate))) return 'border-l-yellow-500 bg-yellow-50';
+    return 'border-l-blue-500 bg-white';
+  };
+
+  const getTaskTypeIcon = (type) => {
+    switch (type) {
+      case 'call': return 'Phone';
+      case 'email': return 'Mail';
+      case 'meeting': return 'Calendar';
+      default: return 'CheckSquare';
+    }
+  };
+
+  const formatTaskDueDate = (dueDate) => {
+    const date = new Date(dueDate);
+    if (isPast(date) && !isToday(date)) {
+      return `Overdue - ${format(date, 'MMM dd, HH:mm')}`;
+    }
+    if (isToday(date)) {
+      return `Today - ${format(date, 'HH:mm')}`;
+    }
+    return format(date, 'MMM dd, yyyy HH:mm');
   };
 
   const formatCurrency = (value) => {
@@ -498,14 +560,102 @@ const LeadDetail = ({ lead, onUpdate, onClose }) => {
                   </motion.div>
                 ))}
             </div>
-          ) : (
+) : (
             <div className="text-center py-8 text-gray-500">
               <ApperIcon name="FileText" size={48} className="mx-auto mb-2 opacity-50" />
               <p>No notes yet. Add the first note above.</p>
             </div>
           )}
         </Card>
-      </div>
+
+        {/* Tasks Section */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Tasks & Activities</h3>
+            <Button onClick={handleCreateTask} size="sm">
+              <ApperIcon name="Plus" size={16} />
+              Add Task
+            </Button>
+          </div>
+
+          {tasks.length > 0 ? (
+            <div className="space-y-4">
+              {tasks.map((task) => (
+                <div
+                  key={task.Id}
+                  className={`p-4 rounded-lg border-l-4 ${getTaskStatusColor(task)}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <ApperIcon name={getTaskTypeIcon(task.type)} size={14} className="text-gray-500" />
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {task.title}
+                        </h4>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          task.priority === 'high' ? 'bg-red-100 text-red-600' :
+                          task.priority === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-green-100 text-green-600'
+                        }`}>
+                          {task.priority}
+                        </span>
+                        {task.status === 'completed' && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-600">
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      
+                      {task.description && (
+                        <p className="text-xs text-gray-600 mb-2">{task.description}</p>
+                      )}
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span className="flex items-center space-x-1">
+                          <ApperIcon name="Clock" size={12} />
+                          <span className={isPast(new Date(task.dueDate)) && task.status !== 'completed' ? 'text-red-600 font-medium' : ''}>
+                            {formatTaskDueDate(task.dueDate)}
+                          </span>
+                        </span>
+                        {task.completedDate && (
+                          <span className="flex items-center space-x-1 text-green-600">
+                            <ApperIcon name="CheckCircle" size={12} />
+                            <span>Completed {format(new Date(task.completedDate), 'MMM dd')}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {task.status === 'pending' || task.status === 'overdue' ? (
+                      <Button
+                        onClick={() => handleMarkTaskComplete(task.Id)}
+                        size="sm"
+                        variant="outline"
+                        className="ml-2 flex-shrink-0 text-green-600 border-green-300 hover:bg-green-50"
+                      >
+                        <ApperIcon name="Check" size={14} />
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <ApperIcon name="CheckSquare" size={48} className="mx-auto mb-2 opacity-50" />
+              <p>No tasks yet. Create the first task above.</p>
+            </div>
+          )}
+        </Card>
+</div>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        leadId={lead.Id}
+        onTaskCreated={handleTaskCreated}
+      />
     </div>
   );
 };

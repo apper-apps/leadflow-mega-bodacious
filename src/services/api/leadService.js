@@ -166,7 +166,7 @@ async getByStatus(status) {
     return { ...deletedNote };
   },
 
-  async getStatusHistory(id) {
+async getStatusHistory(id) {
     await delay(200);
     const lead = leads.find(lead => lead.Id === parseInt(id));
     if (!lead) {

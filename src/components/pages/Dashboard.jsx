@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import DashboardMetrics from "@/components/organisms/DashboardMetrics";
+import PendingTasksWidget from "@/components/organisms/PendingTasksWidget";
+import TaskModal from "@/components/organisms/TaskModal";
 import { leadService } from "@/services/api/leadService";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showTaskModal, setShowTaskModal] = useState(false);
 
   useEffect(() => {
     loadLeads();
@@ -26,6 +31,22 @@ const Dashboard = () => {
     }
   };
 
+const handleTaskClick = (task, action) => {
+    if (action === 'view-all') {
+      navigate('/tasks');
+    } else {
+      navigate('/tasks');
+    }
+  };
+
+  const handleCreateTask = () => {
+    setShowTaskModal(true);
+  };
+
+  const handleTaskCreated = () => {
+    toast.success('Task created successfully');
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -35,11 +56,29 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <DashboardMetrics
-        leads={leads}
-        loading={loading}
-        error={error}
-        onRetry={loadLeads}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <DashboardMetrics
+            leads={leads}
+            loading={loading}
+            error={error}
+            onRetry={loadLeads}
+          />
+        </div>
+        
+        <div className="lg:col-span-1">
+          <PendingTasksWidget
+            onTaskClick={handleTaskClick}
+            onCreateTask={handleCreateTask}
+          />
+        </div>
+      </div>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        onTaskCreated={handleTaskCreated}
       />
     </div>
   );

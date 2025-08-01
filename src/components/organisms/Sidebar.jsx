@@ -6,7 +6,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const menuItems = [
+const menuItems = [
     {
       id: "dashboard",
       label: "Dashboard",
@@ -24,6 +24,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: "Pipeline",
       icon: "GitBranch",
       path: "/pipeline",
+    },
+    {
+      id: "tasks",
+      label: "Tasks",
+      icon: "CheckSquare",
+      path: "/tasks",
     },
   ];
 
