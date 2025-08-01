@@ -20,7 +20,11 @@ const LeadsTable = ({
   onRetry, 
   onCreateLead, 
   onDeleteLead,
-  onLeadClick 
+  onLeadClick,
+  onBulkStatusChange,
+  onBulkAssignUser,
+  onBulkUpdateSource,
+  onBulkDelete
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLeads, setSelectedLeads] = useState(new Set());

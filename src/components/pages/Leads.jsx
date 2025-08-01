@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import LeadsTable from "@/components/organisms/LeadsTable";
-import CreateLeadForm from "@/components/organisms/CreateLeadForm";
-import LeadDetail from "@/components/organisms/LeadDetail";
-import CustomFieldManager from "@/components/organisms/CustomFieldManager";
-import Modal from "@/components/molecules/Modal";
 import { leadService } from "@/services/api/leadService";
+import ApperIcon from "@/components/ApperIcon";
+import Modal from "@/components/molecules/Modal";
+import CustomFieldManager from "@/components/organisms/CustomFieldManager";
+import LeadsTable from "@/components/organisms/LeadsTable";
+import LeadDetail from "@/components/organisms/LeadDetail";
+import CreateLeadForm from "@/components/organisms/CreateLeadForm";
+import Button from "@/components/atoms/Button";
 
 const Leads = () => {
 const [leads, setLeads] = useState([]);
@@ -81,8 +81,8 @@ setShowCreateModal(false);
       await leadService.bulkUpdateStatus(leadIds, status);
       toast.success(`Updated status for ${leadIds.length} leads`);
       loadLeads();
-    } catch (err) {
-      toast.error("Failed to update lead statuses");
+} catch (err) {
+      toast.error("Failed to update lead status");
     } finally {
       setBulkOperationLoading(false);
     }
