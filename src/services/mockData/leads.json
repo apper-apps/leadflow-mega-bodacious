@@ -5,11 +5,28 @@
     "email": "john.smith@techcorp.com",
     "phone": "+1-555-0123",
     "company": "TechCorp Solutions",
+    "title": "CTO",
+    "address": "123 Tech Street, San Francisco, CA 94102",
     "status": "New",
     "source": "Website",
     "value": 25000,
     "createdAt": "2024-01-15T10:30:00Z",
-    "updatedAt": "2024-01-15T10:30:00Z"
+    "updatedAt": "2024-01-15T10:30:00Z",
+    "notes": [
+      {
+        "id": 1,
+        "content": "Initial contact made through website form. Interested in enterprise solution.",
+        "createdAt": "2024-01-15T10:30:00Z",
+        "createdBy": "System"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-15T10:30:00Z",
+        "changedBy": "System"
+      }
+    ]
   },
   {
     "Id": 2,
@@ -17,11 +34,39 @@
     "email": "sarah.j@innovatetech.io",
     "phone": "+1-555-0234",
     "company": "InnovateTech",
+    "title": "VP of Operations",
+    "address": "456 Innovation Blvd, Austin, TX 73301",
     "status": "Contacted",
     "source": "Referral",
     "value": 45000,
     "createdAt": "2024-01-14T14:20:00Z",
-    "updatedAt": "2024-01-16T09:15:00Z"
+    "updatedAt": "2024-01-16T09:15:00Z",
+    "notes": [
+      {
+        "id": 2,
+        "content": "Referred by John Doe from MegaCorp. Very interested in our services.",
+        "createdAt": "2024-01-14T14:20:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 3,
+        "content": "Follow-up call scheduled for next week.",
+        "createdAt": "2024-01-16T09:15:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-14T14:20:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-16T09:15:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 3,
@@ -29,11 +74,44 @@
     "email": "m.chen@globalventures.com",
     "phone": "+1-555-0345",
     "company": "Global Ventures",
+    "title": "Director of Technology",
+    "address": "789 Global Plaza, New York, NY 10001",
     "status": "Qualified",
     "source": "LinkedIn",
     "value": 75000,
     "createdAt": "2024-01-12T16:45:00Z",
-    "updatedAt": "2024-01-17T11:30:00Z"
+    "updatedAt": "2024-01-17T11:30:00Z",
+    "notes": [
+      {
+        "id": 4,
+        "content": "Connected through LinkedIn. Has budget approved for Q1.",
+        "createdAt": "2024-01-12T16:45:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 5,
+        "content": "Demo scheduled for next Friday. Very engaged prospect.",
+        "createdAt": "2024-01-17T11:30:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-12T16:45:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-15T10:00:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-17T11:30:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 4,
@@ -41,11 +119,49 @@
     "email": "emily.davis@startupinc.com",
     "phone": "+1-555-0456",
     "company": "Startup Inc",
+    "title": "Founder & CEO",
+    "address": "321 Startup Way, Seattle, WA 98101",
     "status": "Proposal",
     "source": "Cold Call",
     "value": 32000,
     "createdAt": "2024-01-10T09:00:00Z",
-    "updatedAt": "2024-01-18T15:20:00Z"
+    "updatedAt": "2024-01-18T15:20:00Z",
+    "notes": [
+      {
+        "id": 6,
+        "content": "Cold called, initially hesitant but warmed up after discussing ROI.",
+        "createdAt": "2024-01-10T09:00:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 7,
+        "content": "Proposal sent. Waiting for decision by end of month.",
+        "createdAt": "2024-01-18T15:20:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-10T09:00:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-12T14:30:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-15T16:45:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Proposal",
+        "changedAt": "2024-01-18T15:20:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 5,
@@ -53,11 +169,54 @@
     "email": "d.wilson@megacorp.biz",
     "phone": "+1-555-0567",
     "company": "MegaCorp",
+    "title": "IT Manager",
+    "address": "555 Corporate Center, Chicago, IL 60601",
     "status": "Won",
     "source": "Trade Show",
     "value": 120000,
     "createdAt": "2024-01-08T13:15:00Z",
-    "updatedAt": "2024-01-19T10:45:00Z"
+    "updatedAt": "2024-01-19T10:45:00Z",
+    "notes": [
+      {
+        "id": 8,
+        "content": "Met at CES trade show. Impressed with our demo.",
+        "createdAt": "2024-01-08T13:15:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 9,
+        "content": "Contract signed! Implementation starts next month.",
+        "createdAt": "2024-01-19T10:45:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-08T13:15:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-10T11:20:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-14T09:30:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Proposal",
+        "changedAt": "2024-01-16T14:15:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Won",
+        "changedAt": "2024-01-19T10:45:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 6,
@@ -65,11 +224,54 @@
     "email": "l.anderson@digitalfirm.net",
     "phone": "+1-555-0678",
     "company": "Digital Firm",
+    "title": "Marketing Director",
+    "address": "888 Digital Ave, Los Angeles, CA 90210",
     "status": "Lost",
     "source": "Website",
     "value": 18000,
     "createdAt": "2024-01-05T11:30:00Z",
-    "updatedAt": "2024-01-20T14:00:00Z"
+    "updatedAt": "2024-01-20T14:00:00Z",
+    "notes": [
+      {
+        "id": 10,
+        "content": "Inquired about basic package through website.",
+        "createdAt": "2024-01-05T11:30:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 11,
+        "content": "Decided to go with competitor due to pricing. Keep for future opportunities.",
+        "createdAt": "2024-01-20T14:00:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-05T11:30:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-08T16:45:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-12T10:20:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Proposal",
+        "changedAt": "2024-01-18T13:30:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Lost",
+        "changedAt": "2024-01-20T14:00:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 7,
@@ -77,11 +279,28 @@
     "email": "r.taylor@businesssolutions.org",
     "phone": "+1-555-0789",
     "company": "Business Solutions",
+    "title": "Operations Manager",
+    "address": "777 Business Park, Denver, CO 80202",
     "status": "New",
     "source": "Referral",
     "value": 28000,
     "createdAt": "2024-01-20T08:45:00Z",
-    "updatedAt": "2024-01-20T08:45:00Z"
+    "updatedAt": "2024-01-20T08:45:00Z",
+    "notes": [
+      {
+        "id": 12,
+        "content": "Referred by existing client. Needs solution for Q2 implementation.",
+        "createdAt": "2024-01-20T08:45:00Z",
+        "createdBy": "System"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-20T08:45:00Z",
+        "changedBy": "System"
+      }
+    ]
   },
   {
     "Id": 8,
@@ -89,11 +308,39 @@
     "email": "j.white@techstartup.co",
     "phone": "+1-555-0890",
     "company": "Tech Startup Co",
+    "title": "Head of Product",
+    "address": "999 Innovation Drive, Boston, MA 02101",
     "status": "Contacted",
     "source": "LinkedIn",
     "value": 55000,
     "createdAt": "2024-01-18T12:20:00Z",
-    "updatedAt": "2024-01-21T16:30:00Z"
+    "updatedAt": "2024-01-21T16:30:00Z",
+    "notes": [
+      {
+        "id": 13,
+        "content": "LinkedIn connection. Interested in advanced features.",
+        "createdAt": "2024-01-18T12:20:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 14,
+        "content": "Initial call went well. Scheduling technical demo.",
+        "createdAt": "2024-01-21T16:30:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-18T12:20:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-21T16:30:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 9,
@@ -101,11 +348,44 @@
     "email": "t.brown@enterprisegroup.com",
     "phone": "+1-555-0901",
     "company": "Enterprise Group",
+    "title": "VP of Technology",
+    "address": "111 Enterprise Blvd, Miami, FL 33101",
     "status": "Qualified",
     "source": "Cold Call",
     "value": 95000,
     "createdAt": "2024-01-16T15:10:00Z",
-    "updatedAt": "2024-01-22T09:25:00Z"
+    "updatedAt": "2024-01-22T09:25:00Z",
+    "notes": [
+      {
+        "id": 15,
+        "content": "Cold call success. Large enterprise with complex needs.",
+        "createdAt": "2024-01-16T15:10:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 16,
+        "content": "Requirements gathering complete. Moving to proposal phase.",
+        "createdAt": "2024-01-22T09:25:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-16T15:10:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-18T14:20:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-22T09:25:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   },
   {
     "Id": 10,
@@ -113,10 +393,48 @@
     "email": "a.garcia@growthcompany.io",
     "phone": "+1-555-1012",
     "company": "Growth Company",
+    "title": "Chief Growth Officer",
+    "address": "222 Growth Street, Portland, OR 97201",
     "status": "Proposal",
     "source": "Website",
     "value": 42000,
     "createdAt": "2024-01-14T10:35:00Z",
-    "updatedAt": "2024-01-23T13:15:00Z"
+    "updatedAt": "2024-01-23T13:15:00Z",
+    "notes": [
+      {
+        "id": 17,
+        "content": "Website inquiry for growth optimization tools.",
+        "createdAt": "2024-01-14T10:35:00Z",
+        "createdBy": "System"
+      },
+      {
+        "id": 18,
+        "content": "Custom proposal sent with growth-focused features.",
+        "createdAt": "2024-01-23T13:15:00Z",
+        "createdBy": "Sales Rep"
+      }
+    ],
+    "statusHistory": [
+      {
+        "status": "New",
+        "changedAt": "2024-01-14T10:35:00Z",
+        "changedBy": "System"
+      },
+      {
+        "status": "Contacted",
+        "changedAt": "2024-01-16T11:45:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Qualified",
+        "changedAt": "2024-01-20T15:30:00Z",
+        "changedBy": "Sales Rep"
+      },
+      {
+        "status": "Proposal",
+        "changedAt": "2024-01-23T13:15:00Z",
+        "changedBy": "Sales Rep"
+      }
+    ]
   }
 ]

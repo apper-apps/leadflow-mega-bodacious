@@ -16,7 +16,8 @@ const LeadsTable = ({
   error, 
   onRetry, 
   onCreateLead, 
-  onDeleteLead 
+  onDeleteLead,
+  onLeadClick 
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -143,12 +144,13 @@ const LeadsTable = ({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAndSortedLeads.map((lead, index) => (
-                  <motion.tr
+<motion.tr
                     key={lead.Id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => onLeadClick(lead)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{lead.name}</div>
