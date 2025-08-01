@@ -373,6 +373,217 @@ async getFilteredLeads(filterParams) {
     return filtered.map(lead => ({ ...lead }));
   },
 
+  async getAnalytics(dateRange) {
+    await delay(300);
+    const filteredLeads = leads.filter(lead => {
+      const leadDate = new Date(lead.createdAt);
+      const startDate = new Date(dateRange.startDate);
+      const endDate = new Date(dateRange.endDate);
+      return leadDate >= startDate && leadDate <= endDate;
+    });
+
+    return {
+      leadSources: this.calculateLeadSourcePerformance(filteredLeads),
+      conversionFunnel: this.calculateConversionFunnel(filteredLeads),
+      pipelineVelocity: this.calculatePipelineVelocity(filteredLeads),
+      winLossRatio: this.calculateWinLossRatio(filteredLeads),
+      monthlyTrends: this.calculateMonthlyTrends(filteredLeads),
+      sourceROI: this.calculateSourceROI(filteredLeads),
+      teamPerformance: this.calculateTeamPerformance(filteredLeads),
+      forecast: this.calculateForecast(filteredLeads)
+    };
+  },
+
+  calculateLeadSourcePerformance(leadsArray) {
+    const sourceStats = {};
+    leadsArray.forEach(lead => {
+      if (!sourceStats[lead.source]) {
+        sourceStats[lead.source] = { count: 0, value: 0, won: 0 };
+      }
+      sourceStats[lead.source].count++;
+      sourceStats[lead.source].value += lead.value;
+      if (lead.status === 'Won') sourceStats[lead.source].won++;
+    });
+
+    return Object.entries(sourceStats).map(([source, stats]) => ({
+      source,
+      leads: stats.count,
+      value: stats.value,
+      wonDeals: stats.won,
+      conversionRate: stats.count > 0 ? (stats.won / stats.count) * 100 : 0
+    }));
+  },
+
+  calculateConversionFunnel(leadsArray) {
+    const stages = ['New', 'Contacted', 'Qualified', 'Proposal', 'Won'];
+    return stages.map(stage => ({
+      stage,
+      count: leadsArray.filter(lead => {
+        if (stage === 'Won') return lead.status === 'Won';
+        const statusOrder = ['New', 'Contacted', 'Qualified', 'Proposal', 'Won'];
+        const currentIndex = statusOrder.indexOf(lead.status);
+        const stageIndex = statusOrder.indexOf(stage);
+        return currentIndex >= stageIndex;
+      }).length
+    }));
+  },
+
+  calculatePipelineVelocity(leadsArray) {
+    const velocityData = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthLeads = leadsArray.filter(lead => {
+        const leadDate = new Date(lead.createdAt);
+        return leadDate.getMonth() === monthDate.getMonth() && 
+               leadDate.getFullYear() === monthDate.getFullYear();
+      });
+
+      const avgDaysToClose = monthLeads
+        .filter(lead => lead.status === 'Won')
+        .reduce((acc, lead) => {
+          const created = new Date(lead.createdAt);
+          const closed = new Date(lead.closeDate);
+          return acc + Math.max(1, Math.ceil((closed - created) / (1000 * 60 * 60 * 24)));
+        }, 0) / Math.max(1, monthLeads.filter(lead => lead.status === 'Won').length);
+
+      velocityData.unshift({
+        month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        avgDays: Math.round(avgDaysToClose) || 0,
+        leadsCreated: monthLeads.length,
+        leadsWon: monthLeads.filter(lead => lead.status === 'Won').length
+      });
+    }
+    
+    return velocityData;
+  },
+
+  calculateWinLossRatio(leadsArray) {
+    const closedLeads = leadsArray.filter(lead => ['Won', 'Lost'].includes(lead.status));
+    const wonLeads = closedLeads.filter(lead => lead.status === 'Won');
+    const lostLeads = closedLeads.filter(lead => lead.status === 'Lost');
+
+    return {
+      won: wonLeads.length,
+      lost: lostLeads.length,
+      ratio: lostLeads.length > 0 ? wonLeads.length / lostLeads.length : wonLeads.length,
+      wonValue: wonLeads.reduce((sum, lead) => sum + lead.value, 0),
+      lostValue: lostLeads.reduce((sum, lead) => sum + lead.value, 0)
+    };
+  },
+
+  calculateMonthlyTrends(leadsArray) {
+    const trends = [];
+    const today = new Date();
+    
+    for (let i = 11; i >= 0; i--) {
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthLeads = leadsArray.filter(lead => {
+        const leadDate = new Date(lead.createdAt);
+        return leadDate.getMonth() === monthDate.getMonth() && 
+               leadDate.getFullYear() === monthDate.getFullYear();
+      });
+
+      trends.push({
+        month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        newLeads: monthLeads.length,
+        wonDeals: monthLeads.filter(lead => lead.status === 'Won').length,
+        revenue: monthLeads.filter(lead => lead.status === 'Won')
+                          .reduce((sum, lead) => sum + lead.value, 0),
+        pipelineValue: monthLeads.filter(lead => !['Won', 'Lost'].includes(lead.status))
+                                .reduce((sum, lead) => sum + lead.value, 0)
+      });
+    }
+    
+    return trends;
+  },
+
+  calculateSourceROI(leadsArray) {
+    const sourceCosts = {
+      'Website': 2000,
+      'LinkedIn': 1500,
+      'Referral': 500,
+      'Cold Call': 1000,
+      'Trade Show': 5000,
+      'Email Campaign': 800,
+      'Social Media': 1200,
+      'Partner': 1000
+    };
+
+    const sourceStats = {};
+    leadsArray.forEach(lead => {
+      if (!sourceStats[lead.source]) {
+        sourceStats[lead.source] = { revenue: 0, cost: sourceCosts[lead.source] || 1000 };
+      }
+      if (lead.status === 'Won') {
+        sourceStats[lead.source].revenue += lead.value;
+      }
+    });
+
+    return Object.entries(sourceStats).map(([source, stats]) => ({
+      source,
+      revenue: stats.revenue,
+      cost: stats.cost,
+      roi: stats.cost > 0 ? ((stats.revenue - stats.cost) / stats.cost) * 100 : 0
+    }));
+  },
+
+  calculateTeamPerformance(leadsArray) {
+    const teamStats = {};
+    leadsArray.forEach(lead => {
+      if (!teamStats[lead.assignedUser]) {
+        teamStats[lead.assignedUser] = { leads: 0, won: 0, revenue: 0, pipeline: 0 };
+      }
+      teamStats[lead.assignedUser].leads++;
+      if (lead.status === 'Won') {
+        teamStats[lead.assignedUser].won++;
+        teamStats[lead.assignedUser].revenue += lead.value;
+      } else if (!['Lost'].includes(lead.status)) {
+        teamStats[lead.assignedUser].pipeline += lead.value;
+      }
+    });
+
+    return Object.entries(teamStats).map(([member, stats]) => ({
+      member,
+      totalLeads: stats.leads,
+      wonDeals: stats.won,
+      revenue: stats.revenue,
+      pipelineValue: stats.pipeline,
+      conversionRate: stats.leads > 0 ? (stats.won / stats.leads) * 100 : 0
+    }));
+  },
+
+  calculateForecast(leadsArray) {
+    const forecast = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 6; i++) {
+      const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      const activeLeads = leadsArray.filter(lead => 
+        !['Won', 'Lost'].includes(lead.status) &&
+        new Date(lead.closeDate) >= monthDate &&
+        new Date(lead.closeDate) < new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1)
+      );
+
+      const forecastRevenue = activeLeads.reduce((sum, lead) => 
+        sum + (lead.value * (lead.winProbability / 100)), 0);
+      
+      const bestCase = activeLeads.reduce((sum, lead) => sum + lead.value, 0);
+      const worstCase = forecastRevenue * 0.5;
+
+      forecast.push({
+        month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        forecast: Math.round(forecastRevenue),
+        bestCase: Math.round(bestCase),
+        worstCase: Math.round(worstCase),
+        leadsCount: activeLeads.length
+      });
+    }
+    
+    return forecast;
+  },
+
   async getCommunications(id) {
     await delay(200);
     const lead = leads.find(lead => lead.Id === parseInt(id));
