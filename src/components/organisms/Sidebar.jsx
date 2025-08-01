@@ -25,11 +25,17 @@ const menuItems = [
       icon: "GitBranch",
       path: "/pipeline",
     },
-    {
+{
       id: "tasks",
       label: "Tasks",
       icon: "CheckSquare",
       path: "/tasks",
+    },
+    {
+      id: "communications",
+      label: "Communications",
+      icon: "MessageSquare",
+      path: "/communications",
     },
   ];
 

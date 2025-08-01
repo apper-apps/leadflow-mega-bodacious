@@ -1,0 +1,65 @@
+[
+  {
+    "Id": 1,
+    "leadId": 1,
+    "type": "call",
+    "subject": "Initial discovery call",
+    "date": "2024-01-15T10:30:00Z",
+    "duration": 25,
+    "outcome": "positive",
+    "notes": "Great conversation about their current challenges. They're interested in our solution and want to schedule a demo next week.",
+    "createdBy": "Sales Rep",
+    "createdAt": "2024-01-15T10:55:00Z",
+    "updatedAt": "2024-01-15T10:55:00Z"
+  },
+  {
+    "Id": 2,
+    "leadId": 1,
+    "type": "email",
+    "subject": "Follow-up: Demo scheduling",
+    "date": "2024-01-16T09:15:00Z",
+    "outcome": "sent",
+    "notes": "Sent demo scheduling options and product overview deck. Awaiting response.",
+    "createdBy": "Sales Rep",
+    "createdAt": "2024-01-16T09:15:00Z",
+    "updatedAt": "2024-01-16T09:15:00Z"
+  },
+  {
+    "Id": 3,
+    "leadId": 2,
+    "type": "meeting",
+    "subject": "Product demo session",
+    "date": "2024-01-18T14:00:00Z",
+    "duration": 45,
+    "outcome": "positive",
+    "notes": "Successful demo session. Showed key features and addressed their specific use cases. They want to discuss pricing.",
+    "createdBy": "Sales Rep",
+    "createdAt": "2024-01-18T14:45:00Z",
+    "updatedAt": "2024-01-18T14:45:00Z"
+  },
+  {
+    "Id": 4,
+    "leadId": 3,
+    "type": "call",
+    "subject": "Cold outreach call",
+    "date": "2024-01-20T11:00:00Z",
+    "duration": 8,
+    "outcome": "no_answer",
+    "notes": "Left voicemail with brief introduction and value proposition. Will follow up with email.",
+    "createdBy": "Sales Rep",
+    "createdAt": "2024-01-20T11:08:00Z",
+    "updatedAt": "2024-01-20T11:08:00Z"
+  },
+  {
+    "Id": 5,
+    "leadId": 4,
+    "type": "email",
+    "subject": "Pricing information request",
+    "date": "2024-01-22T13:30:00Z",
+    "outcome": "replied",
+    "notes": "Sent detailed pricing breakdown and ROI analysis. They responded with questions about implementation timeline.",
+    "createdBy": "Sales Rep",
+    "createdAt": "2024-01-22T13:30:00Z",
+    "updatedAt": "2024-01-22T13:30:00Z"
+  }
+]

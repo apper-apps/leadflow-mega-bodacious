@@ -225,6 +225,89 @@ async getStatusHistory(id) {
       );
     }
 
-    return filtered.map(lead => ({ ...lead }));
+return filtered.map(lead => ({ ...lead }));
+  },
+
+  async getCommunications(id) {
+    await delay(200);
+    const lead = leads.find(lead => lead.Id === parseInt(id));
+    if (!lead) {
+      throw new Error("Lead not found");
+    }
+    return lead.communications || [];
+  },
+
+  async addCommunication(id, communicationData) {
+    await delay(250);
+    const index = leads.findIndex(lead => lead.Id === parseInt(id));
+    if (index === -1) {
+      throw new Error("Lead not found");
+    }
+
+    if (!leads[index].communications) {
+      leads[index].communications = [];
+    }
+
+    const maxCommId = Math.max(...leads[index].communications.map(comm => comm.id), 0);
+    const newCommunication = {
+      id: maxCommId + 1,
+      ...communicationData,
+      createdAt: new Date().toISOString(),
+      createdBy: "Sales Rep"
+    };
+
+    leads[index].communications.push(newCommunication);
+    leads[index].updatedAt = new Date().toISOString();
+
+    return { ...newCommunication };
+  },
+
+  async updateCommunication(leadId, commId, communicationData) {
+    await delay(250);
+    const leadIndex = leads.findIndex(lead => lead.Id === parseInt(leadId));
+    if (leadIndex === -1) {
+      throw new Error("Lead not found");
+    }
+
+    if (!leads[leadIndex].communications) {
+      leads[leadIndex].communications = [];
+    }
+
+    const commIndex = leads[leadIndex].communications.findIndex(comm => comm.id === parseInt(commId));
+    if (commIndex === -1) {
+      throw new Error("Communication not found");
+    }
+
+    leads[leadIndex].communications[commIndex] = {
+      ...leads[leadIndex].communications[commIndex],
+      ...communicationData,
+      updatedAt: new Date().toISOString()
+    };
+
+    leads[leadIndex].updatedAt = new Date().toISOString();
+
+    return { ...leads[leadIndex].communications[commIndex] };
+  },
+
+  async deleteCommunication(leadId, commId) {
+    await delay(200);
+    const leadIndex = leads.findIndex(lead => lead.Id === parseInt(leadId));
+    if (leadIndex === -1) {
+      throw new Error("Lead not found");
+    }
+
+    if (!leads[leadIndex].communications) {
+      return;
+    }
+
+    const commIndex = leads[leadIndex].communications.findIndex(comm => comm.id === parseInt(commId));
+    if (commIndex === -1) {
+      throw new Error("Communication not found");
+    }
+
+    const deletedCommunication = leads[leadIndex].communications.splice(commIndex, 1)[0];
+    leads[leadIndex].updatedAt = new Date().toISOString();
+
+    return { ...deletedCommunication };
   }
 };

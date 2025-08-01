@@ -10,9 +10,11 @@ import Select from '@/components/atoms/Select';
 import FormField from '@/components/molecules/FormField';
 import StatusBadge from '@/components/molecules/StatusBadge';
 import TaskModal from '@/components/organisms/TaskModal';
+import CommunicationModal from '@/components/organisms/CommunicationModal';
 import { leadService } from '@/services/api/leadService';
 import { leadSourceService } from '@/services/api/leadSourceService';
 import { taskService } from '@/services/api/taskService';
+import { communicationService } from '@/services/api/communicationService';
 const LeadDetail = ({ lead, onUpdate, onClose }) => {
 const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,11 +24,13 @@ const [isEditing, setIsEditing] = useState(false);
   const [editNoteContent, setEditNoteContent] = useState('');
   const [sources, setSources] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [communications, setCommunications] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showCommModal, setShowCommModal] = useState(false);
+  const [editingComm, setEditingComm] = useState(null);
   const [statusOptions] = useState([
     'New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'
   ]);
-
 useEffect(() => {
     setFormData({
       name: lead.name || '',
@@ -166,7 +170,7 @@ const handleAddNote = async () => {
   };
 
   const handleMarkTaskComplete = async (taskId) => {
-    try {
+try {
       await taskService.markComplete(taskId);
       loadTasks();
       toast.success('Task marked as complete');
@@ -176,6 +180,85 @@ const handleAddNote = async () => {
     }
   };
 
+  const loadCommunications = async () => {
+    try {
+      const communicationsData = await communicationService.getByLeadId(lead.Id);
+      setCommunications(communicationsData);
+    } catch (error) {
+      console.error('Load communications error:', error);
+    }
+  };
+
+  const handleCreateCommunication = (type = 'call') => {
+    setEditingComm(null);
+    setShowCommModal(true);
+  };
+
+  const handleEditCommunication = (communication) => {
+    setEditingComm(communication);
+    setShowCommModal(true);
+  };
+
+  const handleCommunicationSaved = () => {
+    loadCommunications();
+    setShowCommModal(false);
+    setEditingComm(null);
+  };
+
+  const handleDeleteCommunication = async (commId) => {
+    if (!window.confirm('Are you sure you want to delete this communication?')) {
+      return;
+    }
+
+    try {
+      await communicationService.delete(commId);
+      loadCommunications();
+      toast.success('Communication deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete communication');
+      console.error('Delete communication error:', error);
+    }
+  };
+
+  const getCommunicationIcon = (type) => {
+    switch (type) {
+      case 'call':
+        return 'Phone';
+      case 'email':
+        return 'Mail';
+      case 'meeting':
+        return 'Calendar';
+      default:
+        return 'MessageSquare';
+    }
+  };
+
+  const getCommunicationColor = (type, outcome) => {
+    if (outcome === 'positive') return 'text-green-600 bg-green-50 border-green-200';
+    if (outcome === 'negative') return 'text-red-600 bg-red-50 border-red-200';
+    if (outcome === 'no_answer' || outcome === 'voicemail') return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    
+    switch (type) {
+      case 'call':
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'email':
+        return 'text-purple-600 bg-purple-50 border-purple-200';
+      case 'meeting':
+        return 'text-indigo-600 bg-indigo-50 border-indigo-200';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const formatDuration = (duration) => {
+    if (!duration) return '';
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
   const getTaskStatusColor = (task) => {
     if (task.status === 'completed') return 'border-l-green-500 bg-green-50';
     if (task.status === 'overdue' || (task.status === 'pending' && isPast(new Date(task.dueDate)) && !isToday(new Date(task.dueDate)))) {
@@ -569,6 +652,109 @@ const handleAddNote = async () => {
         </Card>
 
         {/* Tasks Section */}
+{/* Communication Timeline */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Communication Timeline</h3>
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => handleCreateCommunication('call')} size="sm" variant="outline">
+                <ApperIcon name="Phone" size={16} />
+                Log Call
+              </Button>
+              <Button onClick={() => handleCreateCommunication('email')} size="sm" variant="outline">
+                <ApperIcon name="Mail" size={16} />
+                Log Email
+              </Button>
+              <Button onClick={() => handleCreateCommunication('meeting')} size="sm">
+                <ApperIcon name="Calendar" size={16} />
+                Log Meeting
+              </Button>
+            </div>
+          </div>
+
+          {communications.length > 0 ? (
+            <div className="space-y-4">
+              {communications.map((comm) => (
+                <div
+                  key={comm.Id}
+                  className={`p-4 rounded-lg border-l-4 ${getCommunicationColor(comm.type, comm.outcome)}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <ApperIcon 
+                          name={getCommunicationIcon(comm.type)} 
+                          size={14} 
+                          className="text-gray-500" 
+                        />
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {comm.subject}
+                        </h4>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          comm.outcome === 'positive' ? 'bg-green-100 text-green-600' :
+                          comm.outcome === 'negative' ? 'bg-red-100 text-red-600' :
+                          comm.outcome === 'neutral' ? 'bg-gray-100 text-gray-600' :
+                          'bg-blue-100 text-blue-600'
+                        }`}>
+                          {comm.outcome.replace('_', ' ')}
+                        </span>
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 capitalize">
+                          {comm.type}
+                        </span>
+                      </div>
+                      
+                      <p className="text-xs text-gray-600 mb-2">{comm.notes}</p>
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span className="flex items-center space-x-1">
+                          <ApperIcon name="Clock" size={12} />
+                          <span>{format(new Date(comm.date), 'MMM dd, yyyy HH:mm')}</span>
+                        </span>
+                        {comm.duration && (
+                          <span className="flex items-center space-x-1">
+                            <ApperIcon name="Timer" size={12} />
+                            <span>{formatDuration(comm.duration)}</span>
+                          </span>
+                        )}
+                        <span className="flex items-center space-x-1">
+                          <ApperIcon name="User" size={12} />
+                          <span>{comm.createdBy}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-1 ml-2">
+                      <Button
+                        onClick={() => handleEditCommunication(comm)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <ApperIcon name="Edit2" size={14} />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCommunication(comm.Id)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-400 hover:text-red-600"
+                      >
+                        <ApperIcon name="Trash2" size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <ApperIcon name="MessageSquare" size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-sm">No communications recorded yet</p>
+              <p className="text-xs">Start by logging a call, email, or meeting</p>
+            </div>
+          )}
+        </Card>
+
+        {/* Tasks & Activities */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Tasks & Activities</h3>
@@ -650,11 +836,19 @@ const handleAddNote = async () => {
 </div>
 
       {/* Task Modal */}
-      <TaskModal
+<TaskModal
         isOpen={showTaskModal}
         onClose={() => setShowTaskModal(false)}
         leadId={lead.Id}
         onTaskCreated={handleTaskCreated}
+      />
+
+      <CommunicationModal
+        isOpen={showCommModal}
+        onClose={() => setShowCommModal(false)}
+        leadId={lead.Id}
+        communication={editingComm}
+        onCommunicationSaved={handleCommunicationSaved}
       />
     </div>
   );
