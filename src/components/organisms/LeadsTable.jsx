@@ -4,12 +4,15 @@ import { format } from "date-fns";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
+import Input from "@/components/atoms/Input";
+import Select from "@/components/atoms/Select";
 import SearchBar from "@/components/molecules/SearchBar";
 import StatusBadge from "@/components/molecules/StatusBadge";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-
+import { leadService } from "@/services/api/leadService";
+import leadSources from "@/services/mockData/leadSources.json";
 const LeadsTable = ({ 
   leads, 
   loading, 
@@ -19,23 +22,70 @@ const LeadsTable = ({
   onDeleteLead,
   onLeadClick 
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    source: "",
+    assignedUser: "",
+    dateFrom: "",
+    dateTo: "",
+    valueMin: "",
+    valueMax: ""
+  });
+const uniqueUsers = useMemo(() => {
+    const users = new Set();
+    leads.forEach(lead => {
+      if (lead.assignedUser) users.add(lead.assignedUser);
+    });
+    return Array.from(users).sort();
+  }, [leads]);
+
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set();
+    leads.forEach(lead => {
+      if (lead.status) statuses.add(lead.status);
+    });
+    return Array.from(statuses).sort();
+  }, [leads]);
 
   const filteredAndSortedLeads = useMemo(() => {
-    let filtered = leads.filter(lead =>
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.source.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = leads.filter(lead => {
+      // Search filter
+      const searchMatch = !searchTerm || 
+        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.company.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Status filter
+      const statusMatch = !filters.status || lead.status === filters.status;
+
+      // Source filter  
+      const sourceMatch = !filters.source || lead.source === filters.source;
+
+      // Assigned user filter
+      const userMatch = !filters.assignedUser || lead.assignedUser === filters.assignedUser;
+
+      // Date range filter
+      const dateMatch = (!filters.dateFrom && !filters.dateTo) || 
+        ((!filters.dateFrom || new Date(lead.createdAt) >= new Date(filters.dateFrom)) &&
+         (!filters.dateTo || new Date(lead.createdAt) <= new Date(filters.dateTo)));
+
+      // Value range filter
+      const valueMatch = (!filters.valueMin && !filters.valueMax) ||
+        ((!filters.valueMin || lead.value >= Number(filters.valueMin)) &&
+         (!filters.valueMax || lead.value <= Number(filters.valueMax)));
+
+      return searchMatch && statusMatch && sourceMatch && userMatch && dateMatch && valueMatch;
+    });
 
     if (sortConfig.key) {
       filtered.sort((a, b) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
+        if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
           aValue = Number(aValue);
           bValue = Number(bValue);
         } else if (sortConfig.key === "createdAt" || sortConfig.key === "closeDate") {
@@ -57,7 +107,26 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
     }
 
     return filtered;
-  }, [leads, searchTerm, sortConfig]);
+  }, [leads, searchTerm, sortConfig, filters]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      status: "",
+      source: "",
+      assignedUser: "",
+      dateFrom: "",
+      dateTo: "",
+      valueMin: "",
+      valueMax: ""
+    });
+    setSearchTerm("");
+  };
+
+  const hasActiveFilters = Object.values(filters).some(value => value !== "") || searchTerm;
 
   const handleSort = (key) => {
     setSortConfig(current => ({
@@ -84,13 +153,39 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <SearchBar
-          onSearch={setSearchTerm}
-          placeholder="Search leads..."
-          className="flex-1 max-w-md"
-        />
+<div className="space-y-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+          <SearchBar
+            onSearch={setSearchTerm}
+            placeholder="Search leads by name, company, or email..."
+            className="flex-1 max-w-md"
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <ApperIcon name="Filter" size={16} />
+              Filters
+              {hasActiveFilters && (
+                <span className="bg-primary text-white text-xs rounded-full px-2 py-0.5 ml-1">
+                  {Object.values(filters).filter(v => v !== "").length + (searchTerm ? 1 : 0)}
+                </span>
+              )}
+            </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                onClick={clearAllFilters}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Clear All
+              </Button>
+            )}
+          </div>
+        </div>
         <Button
           onClick={onCreateLead}
           className="bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90"
@@ -99,6 +194,86 @@ if (sortConfig.key === "value" || sortConfig.key === "winProbability") {
           Add Lead
         </Button>
       </div>
+
+      {showFilters && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-gray-50 rounded-lg p-4 border"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Select
+              label="Status"
+              value={filters.status}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              {uniqueStatuses.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </Select>
+
+            <Select
+              label="Source"
+              value={filters.source}
+              onChange={(e) => handleFilterChange("source", e.target.value)}
+            >
+              <option value="">All Sources</option>
+              {leadSources.map(source => (
+                <option key={source.Id} value={source.value}>{source.name}</option>
+              ))}
+            </Select>
+
+            <Select
+              label="Assigned User"
+              value={filters.assignedUser}
+              onChange={(e) => handleFilterChange("assignedUser", e.target.value)}
+            >
+              <option value="">All Users</option>
+              {uniqueUsers.map(user => (
+                <option key={user} value={user}>{user}</option>
+              ))}
+            </Select>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Date Range</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  placeholder="From"
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+                />
+                <Input
+                  type="date"
+                  placeholder="To"
+                  value={filters.dateTo}
+                  onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Deal Value Range</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={filters.valueMin}
+                  onChange={(e) => handleFilterChange("valueMin", e.target.value)}
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={filters.valueMax}
+                  onChange={(e) => handleFilterChange("valueMax", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {filteredAndSortedLeads.length === 0 ? (
         <Empty

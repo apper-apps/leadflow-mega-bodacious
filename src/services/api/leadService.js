@@ -173,5 +173,58 @@ async getStatusHistory(id) {
       throw new Error("Lead not found");
     }
     return lead.statusHistory || [];
+  },
+
+  async getUniqueUsers() {
+    await delay(100);
+    const users = new Set();
+    leads.forEach(lead => {
+      if (lead.assignedUser) users.add(lead.assignedUser);
+    });
+    return Array.from(users).sort();
+  },
+
+  async getFilteredLeads(filterParams) {
+    await delay(200);
+    let filtered = [...leads];
+
+    if (filterParams.status) {
+      filtered = filtered.filter(lead => lead.status === filterParams.status);
+    }
+
+    if (filterParams.source) {
+      filtered = filtered.filter(lead => lead.source === filterParams.source);
+    }
+
+    if (filterParams.assignedUser) {
+      filtered = filtered.filter(lead => lead.assignedUser === filterParams.assignedUser);
+    }
+
+    if (filterParams.dateFrom) {
+      filtered = filtered.filter(lead => new Date(lead.createdAt) >= new Date(filterParams.dateFrom));
+    }
+
+    if (filterParams.dateTo) {
+      filtered = filtered.filter(lead => new Date(lead.createdAt) <= new Date(filterParams.dateTo));
+    }
+
+    if (filterParams.valueMin) {
+      filtered = filtered.filter(lead => lead.value >= Number(filterParams.valueMin));
+    }
+
+    if (filterParams.valueMax) {
+      filtered = filtered.filter(lead => lead.value <= Number(filterParams.valueMax));
+    }
+
+    if (filterParams.search) {
+      const searchTerm = filterParams.search.toLowerCase();
+      filtered = filtered.filter(lead =>
+        lead.name.toLowerCase().includes(searchTerm) ||
+        lead.email.toLowerCase().includes(searchTerm) ||
+        lead.company.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    return filtered.map(lead => ({ ...lead }));
   }
 };
