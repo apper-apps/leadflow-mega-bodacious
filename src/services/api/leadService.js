@@ -1,5 +1,5 @@
 import leadsData from "@/services/mockData/leads.json";
-
+import { workflowService } from "@/services/api/workflowService";
 let leads = [...leadsData];
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -113,6 +113,21 @@ async create(leadData) {
       }] : []
     };
     leads.push(newLead);
+    
+    // Apply workflow automation rules
+    try {
+      const updatedLead = await workflowService.processLeadRules(newLead, 'created');
+      if (updatedLead.Id !== newLead.Id) {
+        const index = leads.findIndex(lead => lead.Id === newLead.Id);
+        if (index !== -1) {
+          leads[index] = updatedLead;
+          return { ...updatedLead };
+        }
+      }
+    } catch (error) {
+      console.warn('Workflow automation failed:', error);
+    }
+    
     return { ...newLead };
   },
 
@@ -149,6 +164,20 @@ async update(id, updateData) {
     }
     
     leads[index] = updatedLead;
+    
+    // Apply workflow automation rules for updates (exclude workflow-generated updates)
+    if (!updateData._skipWorkflow) {
+      try {
+        const automatedLead = await workflowService.processLeadRules(updatedLead, 'updated');
+        if (automatedLead.Id === updatedLead.Id) {
+          leads[index] = automatedLead;
+          return { ...automatedLead };
+        }
+      } catch (error) {
+        console.warn('Workflow automation failed:', error);
+      }
+    }
+    
     return { ...leads[index] };
   },
 

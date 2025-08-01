@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import Layout from "@/components/organisms/Layout";
-import Dashboard from "@/components/pages/Dashboard";
-import Leads from "@/components/pages/Leads";
-import Pipeline from "@/components/pages/Pipeline";
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import Layout from '@/components/organisms/Layout'
+import Dashboard from '@/components/pages/Dashboard'
+import Leads from '@/components/pages/Leads'
+import Pipeline from '@/components/pages/Pipeline'
+import WorkflowAutomation from '@/components/pages/WorkflowAutomation'
 import Tasks from "@/components/pages/Tasks";
 import Communications from "@/components/pages/Communications";
 

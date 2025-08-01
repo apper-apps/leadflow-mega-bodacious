@@ -1,0 +1,234 @@
+{
+  "rules": [
+    {
+      "Id": 1,
+      "name": "Website Leads to Sales Team",
+      "description": "Automatically assign website leads to available sales team members",
+      "isActive": true,
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "source",
+            "operator": "equals",
+            "value": "Website"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": "Sarah Johnson"
+        },
+        {
+          "type": "set_status", 
+          "value": "Contacted"
+        }
+      ],
+      "createdAt": "2024-01-15T08:00:00.000Z",
+      "updatedAt": "2024-01-15T08:00:00.000Z",
+      "createdBy": "Admin",
+      "priority": 1
+    },
+    {
+      "Id": 2,
+      "name": "High Value Lead Alert",
+      "description": "Assign high-value leads to senior sales rep",
+      "isActive": true,
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "value",
+            "operator": "greater_than",
+            "value": 50000
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": "Michael Chen"
+        },
+        {
+          "type": "set_status",
+          "value": "Qualified"
+        }
+      ],
+      "createdAt": "2024-01-20T10:30:00.000Z",
+      "updatedAt": "2024-01-20T10:30:00.000Z", 
+      "createdBy": "Admin",
+      "priority": 2
+    },
+    {
+      "Id": 3,
+      "name": "Referral Fast Track",
+      "description": "Fast track referral leads with high priority",
+      "isActive": true,
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "source",
+            "operator": "equals",
+            "value": "Referral"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": "Emily Rodriguez"
+        },
+        {
+          "type": "set_status",
+          "value": "Contacted"
+        }
+      ],
+      "createdAt": "2024-02-01T14:15:00.000Z",
+      "updatedAt": "2024-02-01T14:15:00.000Z",
+      "createdBy": "Admin", 
+      "priority": 3
+    }
+  ],
+  "activity": [
+    {
+      "Id": 1,
+      "ruleId": 1,
+      "ruleName": "Website Leads to Sales Team",
+      "leadId": 15,
+      "leadName": "Jennifer Wilson",
+      "action": "assign_user",
+      "actionValue": "Sarah Johnson",
+      "triggeredAt": "2024-12-19T09:15:00.000Z",
+      "status": "success"
+    },
+    {
+      "Id": 2,
+      "ruleId": 2,
+      "ruleName": "High Value Lead Alert", 
+      "leadId": 12,
+      "leadName": "Global Industries Inc",
+      "action": "assign_user",
+      "actionValue": "Michael Chen",
+      "triggeredAt": "2024-12-19T11:30:00.000Z",
+      "status": "success"
+    },
+    {
+      "Id": 3,
+      "ruleId": 1,
+      "ruleName": "Website Leads to Sales Team",
+      "leadId": 18,
+      "leadName": "David Park",
+      "action": "set_status",
+      "actionValue": "Contacted", 
+      "triggeredAt": "2024-12-19T14:45:00.000Z",
+      "status": "success"
+    },
+    {
+      "Id": 4,
+      "ruleId": 3,
+      "ruleName": "Referral Fast Track",
+      "leadId": 21,
+      "leadName": "Maria Santos",
+      "action": "assign_user",
+      "actionValue": "Emily Rodriguez",
+      "triggeredAt": "2024-12-19T16:20:00.000Z",
+      "status": "success"
+    }
+  ],
+  "templates": [
+    {
+      "Id": 1,
+      "name": "Lead Source Assignment",
+      "description": "Assign leads to team members based on their source",
+      "category": "assignment",
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "source",
+            "operator": "equals",
+            "value": ""
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "Id": 2,
+      "name": "High Value Lead Priority",
+      "description": "Prioritize leads above a certain value threshold",
+      "category": "prioritization",
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "value",
+            "operator": "greater_than",
+            "value": 10000
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": ""
+        },
+        {
+          "type": "set_status",
+          "value": "Qualified"
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "name": "Geographic Assignment",
+      "description": "Assign leads to regional representatives",
+      "category": "assignment",
+      "trigger": {
+        "type": "lead_created",
+        "conditions": [
+          {
+            "field": "address",
+            "operator": "contains",
+            "value": ""
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "assign_user",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "Id": 4,
+      "name": "Status Progression",
+      "description": "Automatically advance lead status based on conditions",
+      "category": "status",
+      "trigger": {
+        "type": "lead_updated",
+        "conditions": [
+          {
+            "field": "status",
+            "operator": "equals",
+            "value": "New"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "type": "set_status",
+          "value": "Contacted"
+        }
+      ]
+    }
+  ]
+}

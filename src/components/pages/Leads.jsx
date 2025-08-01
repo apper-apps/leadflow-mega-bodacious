@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
 import { leadService } from '@/services/api/leadService'
 import ApperIcon from '@/components/ApperIcon'
 import Modal from '@/components/molecules/Modal'
@@ -10,6 +11,7 @@ import CreateLeadForm from '@/components/organisms/CreateLeadForm'
 import CsvImportModal from '@/components/organisms/CsvImportModal'
 import Button from '@/components/atoms/Button'
 const Leads = () => {
+const navigate = useNavigate();
 const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -168,6 +170,14 @@ setShowCreateModal(false);
           >
             <ApperIcon name="Upload" size={16} />
             <span>Import CSV</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/workflows')}
+            className="flex items-center space-x-2"
+          >
+            <ApperIcon name="Zap" size={16} />
+            <span>Workflows</span>
           </Button>
         </div>
       </div>
